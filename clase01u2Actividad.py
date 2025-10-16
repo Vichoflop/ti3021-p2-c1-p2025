@@ -1,30 +1,64 @@
-class usuario:
-    def __init__(self, nombre:str,rut: int, correo: str):
-        self._nombre: str = nombre
-        self._rut:  int = rut
-        self._correo: str = correo
+class Usuario:
+    def __init__(self, nombre: str, rut: int, correo: str):
+        self._nombre = nombre
+        self._rut = rut
+        self._correo = correo
+
+    # --- Propiedades de solo lectura ---
+    @property
+    def nombre(self):
+        return self._nombre
+
+    @property
+    def rut(self):
+        return self._rut
+
+    @property
+    def correo(self):
+        return self._correo
 
 
 class Estudiantes:
-    def __init__(self, PrestamosActivos: int, EstadoDeuda: str, HistorialPrestamo: str):
-        self.__PrestamosActivos: int = PrestamosActivos
-        self._EstadoDeuda: str = EstadoDeuda
-        self._HistorialPrestamo: str = HistorialPrestamo
+    def __init__(self, prestamos_activos: int, estado_deuda: str, historial_prestamo: str):
+        self._prestamos_activos = prestamos_activos
+        self._estado_deuda = estado_deuda
+        self._historial_prestamo = historial_prestamo
 
+    # --- Propiedades de solo lectura ---
+    @property
+    def prestamos_activos(self):
+        return self._prestamos_activos
+
+    @property
+    def estado_deuda(self):
+        return self._estado_deuda
+
+    @property
+    def historial_prestamo(self):
+        return self._historial_prestamo
 
 
 class Docentes:
-    def __init__(self, MaterialExclusivoAccedido: str):
-        self.__MaterialExclusivoAccedido: str = MaterialExclusivoAccedido
+    def __init__(self, material_exclusivo_accedido: str):
+        self._material_exclusivo_accedido = material_exclusivo_accedido
+
+    @property
+    def material_exclusivo_accedido(self):
+        return self._material_exclusivo_accedido
+
 
 class Investigadores:
-    def __init__(self, NivelDeAcceso: str, DataSetsDescargados: int ):
-        self.__NivelDeAcceso: str= NivelDeAcceso
-        self.__DataSetsDescargados: int = DataSetsDescargados
+    def __init__(self, nivel_de_acceso: str, datasets_descargados: int):
+        self._nivel_de_acceso = nivel_de_acceso
+        self._datasets_descargados = datasets_descargados
+
+    # --- Propiedades de solo lectura ---
+    @property
+    def nivel_de_acceso(self):
+        return self._nivel_de_acceso
+
+    @property
+    def datasets_descargados(self):
+        return self._datasets_descargados
 
 
-class usuario:
-    def __init__(self, CantidadMaterial: int, GestionUsuario: int, GestionPrestamo: int ):
-        self.CantidadMaterial: int = CantidadMaterial
-        self._GestionUsuario: int = GestionUsuario
-        self._GestionPrestamo: int = GestionPrestamo
