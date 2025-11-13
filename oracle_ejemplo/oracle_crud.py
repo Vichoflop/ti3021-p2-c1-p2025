@@ -32,6 +32,39 @@ def create_table():
         print(f"No se pudo crear la tabla: {err}")
 
 
+def create_schema():
+
+    tables = [
+        (
+            "CREATE TABLE"
+            "PERSONAS ("
+            "id INTEGER PRIMARY KEY"
+            "rut NUMBER(8)"
+            "nombres VARCHAR2(64)"
+            "apellidos VARCHAR2(64)"
+            "fecha_nacimiento DATE"
+            ")"
+        ),
+        (
+            "CREATE TABLE"
+            "DEPARTAMENTOS ("
+            "id INTEGER PRIMARY KEY"
+            "nombre VARCHAR2(32)"
+            "fecha_creacion DATETIME"
+            ")"
+        ),
+        (
+            "CREATE TABLE"
+            "EMPLEADOS ("
+            "id INTEGER PRIMARY KEY,"
+            "sueldo NUMBER(10,2),"
+            "idPersona INTEGER,"
+            "idDepartamentos INTEGER,"
+        )
+    ]
+
+
+
 create_table()
 
 from datetime import datetime
@@ -60,4 +93,4 @@ def create_persona(rut = None, nombres = None, apellidos = None, fecha_nacimient
 
 create_persona()
     
-       
+     
