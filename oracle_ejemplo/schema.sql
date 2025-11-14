@@ -1,7 +1,7 @@
 CREATE TABLE Usuarios(
     id_usuario INTEGER PRIMARY KEY,
-    nombre VARCHAR2(50) NOT NULL,
-    apellido VARCHAR2(50) NOT NULL,
+    nombres VARCHAR2(100) NOT NULL,
+    apellidos VARCHAR2(100) NOT NULL,
     Rut VARCHAR2(12) UNIQUE NOT NULL,
     correo VARCHAR2(50) UNIQUE NOT NULL
 );

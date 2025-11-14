@@ -11,86 +11,101 @@ password = os.getenv("ORACLE_PASSWORD")
 def get_connection():
     return oracledb.connect(user = username, password = password, dsn = dsn)
 
-def create_table():
-    ddl = (
-        "CREATE TABLE vjcr_personas ("
-        "rut VARCHAR2(50) PRIMARY KEY,"
-        "nombres VARCHAR2(200),"
-        "apellidos VARCHAR2(200),"
-        "fecha_nacimiento DATE,"
-        "numero_telefono VARCHAR2(50)"
+def create_schema(query):
+    try:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                print(f"Tabla creada \n {query}")
+    except oracledb.DatabaseError as error:
+        print(f"No se pudo crear la tabla: {error}")
+
+tables = [
+    (
+        "CREATE TABLE"
+        "Usuarios ("
+        "id_usuario INTEGER PRIMARY KEY,"
+        "nombres VARCHAR2(64),"
+        "apellidos VARCHAR2(64),"
+        "Rut Varchar2(12),"
+        "correo varchar2(50)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "Estudiantes ("
+        "id_estudiante INTEGER PRIMARY KEY,"
+        "id_usuario INTEGER,"
+        "PrestamosActivos INTEGER NOT NULL,"
+        "EstadoDeuda VARCHAR2(50) NOT NULL,"
+        "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "Docentes ("
+        "id_docente INTEGER PRIMARY KEY,"
+        "id_usuario INTEGER,"
+        "MaterialExclusivoAccedido VARCHAR2(50) NOT NULL,"
+        "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "Investigadores ("
+        "id_investigador INTEGER PRIMARY KEY,"
+        "NivelAcceso VARCHAR2(50) NOT NULL"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "lIBROS ("
+        "id_libro INTEGER PRIMARY KEY,"
+        "id_estudiante INTEGER,"
+        "nombre VARCHAR2(50),"
+        "autor VARCHAR2(50),"
+        "anio_publicacion NUMBER(4),"
+        "CantidadPaginas INTEGER,"
+        "Cantidad INTEGER,"
+        "Descripcion VARCHAR2(100),"
+        "FOREIGN KEY (id_estudiante) REFERENCES Estudiantes(id_estudiante)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "PRESTAMOS ("
+        "Id_prestamo INTEGER PRIMARY KEY,"
+        "id_estudiante INTEGER NOT NULL,"
+        "Id_libro INTEGER NOT NULL,"
+        "cantidad INTEGER NOT NULL,"
+        "fecha_prestamo DATE,"
+        "fecha_devolucion DATE,"
+        "FOREIGN KEY (id_estudiante) REFERENCES Estudiantes(id_estudiante),"
+        "FOREIGN KEY (Id_libro) REFERENCES Libro(id_libro)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "DataSetsDescargados ("
+        "id_Data_Set_Descargado INTEGER PRIMARY KEY,"
+        "id_investigador INTEGER NOT NULL,"
+        "Nombre VARCHAR2(50) NOT NULL,"
+       " Cantidad INTEGER NOT NULL,"
+        "FOREIGN KEY (id_investigador) REFERENCES Investigadores(id_investigador)"
+        ")"
+    ),
+    (
+        "CREATE TABLE"
+        "BIBLIOTECA ("
+        "id_Biblioteca INTEGER PRIMARY KEY,"
+        "CantidadMaterial INTEGER NOT NULL,"
+        "GestionPrestamo INTEGER NOT NULL"
         ")"
     )
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(ddl)
-                print("Tabla 'personas' creada.")
-            conn.commit()
-    except oracledb.DatabaseError as e:
-        err = e
-        print(f"No se pudo crear la tabla: {err}")
+]
 
-
-def create_schema():
-
-    tables = [
-        (
-            "CREATE TABLE"
-            "PERSONAS ("
-            "id INTEGER PRIMARY KEY"
-            "rut NUMBER(8)"
-            "nombres VARCHAR2(64)"
-            "apellidos VARCHAR2(64)"
-            "fecha_nacimiento DATE"
-            ")"
-        ),
-        (
-            "CREATE TABLE"
-            "DEPARTAMENTOS ("
-            "id INTEGER PRIMARY KEY"
-            "nombre VARCHAR2(32)"
-            "fecha_creacion DATETIME"
-            ")"
-        ),
-        (
-            "CREATE TABLE"
-            "EMPLEADOS ("
-            "id INTEGER PRIMARY KEY,"
-            "sueldo NUMBER(10,2),"
-            "idPersona INTEGER,"
-            "idDepartamentos INTEGER,"
-        )
-    ]
+for query in tables:
+    create_schema(query)
 
 
 
-create_table()
-
-from datetime import datetime
-
-def create_persona(rut = None, nombres = None, apellidos = None, fecha_nacimiento = None, cod_area = "+569", numero_telefono = None): 
-    sql = (
-        "INSERT INTO personas (rut, nombres, apellidos, fecha_nacimiento, cod_area, numero_telefono) "         
-        "VALUES (:rut, :nombres, :apellidos, :fecha_nacimiento, :cod_area, :numero_telefono)"     
-    )    
-    if fecha_nacimiento: 
-        bind_fecha = datetime.strptime(fecha_nacimiento, "%Y-%m-%d")
-    else:
-        bind_fecha = None     
-    with get_connection() as conn:         
-        with conn.cursor() as cur:            
-            cur.execute(sql, {                 
-            "rut": rut,                 
-            "nombres": nombres,                 
-            "apellidos": apellidos,                 
-            "fecha_nacimiento": bind_fecha,                 
-            "cod_area": cod_area,                 
-            "numero_telefono": numero_telefono,             
-            })             
-        conn.commit()             
-    print(f"Persona con RUT={rut} creada.") 
-
-create_persona()
-    
-     
