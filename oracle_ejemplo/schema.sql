@@ -30,7 +30,7 @@ CREATE TABLE Investigadores(
 );
 
 
-CREATE TABLE Libro(
+CREATE TABLE Libros(
     id_libro INTEGER PRIMARY KEY,
     id_estudiante INTEGER,
     nombre VARCHAR2(50),

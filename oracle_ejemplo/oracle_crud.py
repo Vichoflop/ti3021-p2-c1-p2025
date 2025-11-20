@@ -1,3 +1,4 @@
+from typing import Optional
 import oracledb
 import os
 from dotenv import load_dotenv
@@ -59,7 +60,7 @@ tables = [
     ),
     (
         "CREATE TABLE"
-        "lIBROS ("
+        "LIBROS ("
         "id_libro INTEGER PRIMARY KEY,"
         "id_estudiante INTEGER,"
         "nombre VARCHAR2(50),"
@@ -107,5 +108,369 @@ tables = [
 for query in tables:
     create_schema(query)
 
+def create_Usuarios():
+    pass
+
+def create_Estudiantes():
+    pass
+
+def create_Docentes():
+    pass
+
+def create_Investigadores():
+    pass
+
+def create_Libros():
+    pass
+
+def create_Prestamos():
+    pass
+
+def create_DataSetsDescargados():
+    pass
+
+def create_Biblioteca():
+    pass
+
+
+def read_Usuarios():
+    sql = (
+        "Select * from Usuarios"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Usuarios")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+
+def read_Usuarios_by_id(id):
+    sql = (
+        "Select * from Usuarios where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Usuarios")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Estudiantes():
+    sql = (
+        "Select * from Estudiantes"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Estudiantes")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Estudiantes_by_id(id):
+    sql = (
+        "Select * from Estudiantes where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Estudiantes")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+
+def read_Docentes():
+    sql = (
+        "Select * from Docentes"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Docentes")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Docentes_by_id(id):
+    sql = (
+        "Select * from Docentes where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Docentes")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Investigadores():
+    sql = (
+        "Select * from Investigadores"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Investigadores")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Investigadores_by_id(id):
+    sql = (
+        "Select * from Investigadores where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Investigadores")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Libros():
+    sql = (
+        "Select * from Libros"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Libros")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Libros_by_id(id):
+    sql = (
+        "Select * from Libros where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Libros")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Prestamos():
+    sql = (
+        "Select * from Prestamos"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Prestamos")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Prestamos_by_id(id):
+    sql = (
+        "Select * from Prestamos where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Prestamos")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_DataSetsDescargados():
+    sql = (
+        "Select * from DataSetsDescargados"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla DataSetsDescargados")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_DataSetsDescargados_by_id(id):
+    sql = (
+        "Select * from DataSetsDescargados where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla DataSetsDescargados")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Biblioteca():
+    sql = (
+        "Select * from Bilioteca"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla Biblioteca")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+
+def read_Biblioteca_by_id(id):
+    sql = (
+        "Select * from Biblioteca where id = :id"
+    )
+
+    parametros = {"id": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla Biblioteca")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {e}")
+
+
+def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Optional[str] = None, rut: Optional[str] = None, correo: Optional[str] = None ):
+    Modificaciones = []     
+    parametros = {"id": id_usuario}     
+    if nombres is not None:         
+        Modificaciones.append("nombres =: nombres")         
+        parametros["nombres"] = nombres     
+    if apellidos is not None:         
+        Modificaciones.append("apellidos =: apellidos")         
+        parametros["apellidos"] = apellidos     
+    if rut is not None:         
+        Modificaciones.append("rut =: rut")         
+        parametros["rut"] = rut     
+    if correo is not None:         
+        Modificaciones.append("correo = :correo")         
+        parametros["correo"] = correo           
+    if not Modificaciones:         
+        print("No hay campos para actualizar.")         
+        return      
+    
+    sql = "UPDATE personas SET " + ", ".join(Modificaciones) + " WHERE id =: id" 
+
+
+def update_Estudiantes():
+    pass
+
+def update_Docentes():
+    pass
+
+def update_Investigadores():
+    pass
+
+def update_Libros():
+    pass
+
+def update_Prestamos():
+    pass
+
+def update_DataSetsDescargados():
+    pass
+
+def update_Biblioteca():
+    pass
 
 
