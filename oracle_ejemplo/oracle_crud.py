@@ -28,9 +28,7 @@ tables = [
         "id_usuario INTEGER PRIMARY KEY,"
         "nombres VARCHAR2(64),"
         "apellidos VARCHAR2(64),"
-        "Rut Varchar2(12),"
         "correo varchar2(50)"
-        ")"
     ),
     (
         "CREATE TABLE Estudiantes ("
@@ -110,14 +108,13 @@ def create_Usuarios(
         correo: str
 ):
     sql = (
-        "INSERT INTO Usuarios (id_usuario, nombres, apellidos, rut, correo) "
-        "VALUES (:id_usuario, :nombres, :apellidos, :rut, :correo)"
+        "INSERT INTO Usuarios (id_usuario, nombres, apellidos,correo) "
+        "VALUES (:id_usuario, :nombres, :apellidos, :correo)"
     )
     parametros = {
         "id_usuario": id_usuario,
         "nombres": nombres,
         "apellidos": apellidos,
-        "rut": rut,
         "correo": correo
     }
     try:
@@ -130,7 +127,14 @@ def create_Usuarios(
         err = e
         print(f"Error al insertar datos: {e}")
 
- 
+
+create_Usuarios(1, "Juan", "Pérez", "juan@example.com")
+create_Usuarios(2, "María", "González", "maria@example.com")
+create_Usuarios(3, "Pedro", "Lagos", "pedro@example.com")
+create_Usuarios(4, "Ana", "Rojas", "ana@example.com")
+create_Usuarios(5, "Luis", "Martínez", "luis@example.com")
+
+
 def create_Estudiantes(
         id_estudiante: int,
         id_usuario: int,
@@ -158,6 +162,13 @@ def create_Estudiantes(
         print(f"Error al insertar datos: {e}")
 
 
+create_Estudiantes(1, 1, 2, "Sin deuda")
+create_Estudiantes(2, 2, 1, "Sin deuda")
+create_Estudiantes(3, 3, 0, "Sin deuda")
+create_Estudiantes(4, 4, 3, "Con deuda")
+create_Estudiantes(5, 5, 1, "Sin deuda")
+
+
 def create_Docentes(
         id_docente: int,
         id_usuario: int,
@@ -183,16 +194,25 @@ def create_Docentes(
         print(f"Error al insertar datos: {e}")
     
 
+create_Docentes(1, 1, "Guia de Trigonometria")
+create_Docentes(2, 2, "Guia de Base de Datos")
+create_Docentes(3, 3, "Guia de Programacion")
+create_Docentes(4, 4, "Guia de Redes")
+create_Docentes(5, 5, "Guia de Sistemas Operativos")
+
+
 def create_Investigadores(
         id_investigador: int,
+        id_usuario: int,
         NivelAcceso: str
 ):
     sql = (
-        "INSERT INTO Investigadores (id_investigador, NivelAcceso) "
-        "VALUES (:id_investigador, :NivelAcceso)"
+        "INSERT INTO Investigadores (id_investigador,id_usuario, NivelAcceso) "
+        "VALUES (:id_investigador, :id_usuario, :NivelAcceso)"
     )
     parametros = {
         "id_investigador": id_investigador,
+        "id_usuario": id_usuario,
         "NivelAcceso": NivelAcceso
     }
     try:
@@ -205,6 +225,13 @@ def create_Investigadores(
         err = e
         print(f"Error al insertar datos: {e}")
     
+
+create_Investigadores(1, 1, "Alto")
+create_Investigadores(2, 2, "Medio")
+create_Investigadores(3, 3, "Alto")
+create_Investigadores(4, 4, "Medio")
+create_Investigadores(5, 5, "Bajo")
+
 
 def create_Libros(
         id_libro: int,
@@ -241,6 +268,12 @@ def create_Libros(
         print(f"Error al insertar datos: {e}")
     
 
+create_Libros(1, 1, "El Principito", "Antoine de Saint-Exupéry", 1943, 96, 5, "Clásico infantil")
+create_Libros(2, 2, "1984", "George Orwell", 1949, 328, 3, "Distopía política")
+create_Libros(3, 3, "Cien Años de Soledad", "García Márquez", 1967, 417, 4, "Realismo mágico")
+create_Libros(4, 4, "Harry Potter 1", "J.K. Rowling", 1997, 223, 7, "Fantasía")
+create_Libros(5, 5, "La Odisea", "Homero", -800, 500, 2, "Épica griega")
+
 
 def create_Prestamos(
         id_prestamo: int,
@@ -273,6 +306,13 @@ def create_Prestamos(
         print(f"Error al insertar datos: {e}")
     
 
+create_Prestamos(1, 1, 1, 1, "2025-01-10", "2025-01-20")
+create_Prestamos(2, 2, 2, 1, "2025-01-11", "2025-01-25")
+create_Prestamos(3, 3, 3, 2, "2025-01-12", "2025-01-22")
+create_Prestamos(4, 4, 4, 1, "2025-01-15", "2025-01-30")
+create_Prestamos(5, 5, 5, 1, "2025-01-18", "2025-01-28")
+
+
 def create_DataSetsDescargados(
         id_Data_Set_Descargado: int,
         id_investigador: int,
@@ -300,6 +340,13 @@ def create_DataSetsDescargados(
         print(f"Error al insertar datos: {e}")
     
 
+create_DataSetsDescargados(1, 1, "Genoma Humano", 3)
+create_DataSetsDescargados(2, 2, "Clima Global", 5)
+create_DataSetsDescargados(3, 3, "Sismos Chile", 2)
+create_DataSetsDescargados(4, 4, "Ventas Retail", 4)
+create_DataSetsDescargados(5, 5, "Salud Pública", 1)
+
+
 def create_Biblioteca(
         id_Biblioteca: int,
         CantidadMaterial: int,
@@ -324,6 +371,13 @@ def create_Biblioteca(
         err = e
         print(f"Error al insertar datos: {e}")
     
+
+create_Biblioteca(1, 2000, 300)
+create_Biblioteca(2, 1500, 250)
+create_Biblioteca(3, 1800, 270)
+create_Biblioteca(4, 2200, 320)
+create_Biblioteca(5, 2500, 350)
+
 
 
 def read_Usuarios():
@@ -592,7 +646,7 @@ def read_Biblioteca_by_id(id_Biblioteca):
         print(f"Error al insertar datos: {e}")
 
 
-def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Optional[str] = None, rut: Optional[str] = None, correo: Optional[str] = None ):
+def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Optional[str] = None, correo: Optional[str] = None ):
     Modificaciones = []     
     parametros = {"id": id_usuario}     
     if nombres is not None:         
@@ -600,10 +654,7 @@ def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Option
         parametros["nombres"] = nombres     
     if apellidos is not None:         
         Modificaciones.append("apellidos =: apellidos")         
-        parametros["apellidos"] = apellidos     
-    if rut is not None:         
-        Modificaciones.append("rut =: rut")         
-        parametros["rut"] = rut     
+        parametros["apellidos"] = apellidos                 
     if correo is not None:         
         Modificaciones.append("correo = :correo")         
         parametros["correo"] = correo           
@@ -617,7 +668,7 @@ def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Option
         with conn.cursor() as cur:
             cur.execute(sql, parametros)
         conn.commit()
-        print(f"Usuario con RUT={rut} actualizado.") 
+        print(f"Usuario con ID={id_usuario} actualizado.") 
 
 
 def update_Estudiantes(id_estudiante,PrestamosActivos: Optional[int] = None,EstadoDeuda: Optional[str] = None):

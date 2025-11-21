@@ -3,7 +3,6 @@ CREATE TABLE Usuarios (
     nombre            VARCHAR2(100) NOT NULL,
     apellido          VARCHAR2(100) NOT NULL,
     correo            VARCHAR2(120) UNIQUE NOT NULL,
-    tipo_usuario      VARCHAR2(20) CHECK (tipo_usuario IN ('estudiante','docente','investigador','Biblioteca'))
 );
 
 
@@ -50,7 +49,6 @@ CREATE TABLE Prestamos (
     cantidad INTEGER NOT NULL,
     fecha_prestamo    DATE DEFAULT SYSDATE,
     fecha_devolucion  DATE,
-    estado            VARCHAR2(20) CHECK (estado IN ('pendiente','devuelto','retrasado')),
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
     FOREIGN KEY (id_libro) REFERENCES Libros(id_libro)
 );
