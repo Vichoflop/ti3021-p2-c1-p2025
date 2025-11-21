@@ -2,6 +2,7 @@ from typing import Optional
 import oracledb
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -23,8 +24,7 @@ def create_schema(query):
 
 tables = [
     (
-        "CREATE TABLE"
-        "Usuarios ("
+        "CREATE TABLE Usuarios ("
         "id_usuario INTEGER PRIMARY KEY,"
         "nombres VARCHAR2(64),"
         "apellidos VARCHAR2(64),"
@@ -33,8 +33,7 @@ tables = [
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Estudiantes ("
+        "CREATE TABLE Estudiantes ("
         "id_estudiante INTEGER PRIMARY KEY,"
         "id_usuario INTEGER,"
         "PrestamosActivos INTEGER NOT NULL,"
@@ -43,8 +42,7 @@ tables = [
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Docentes ("
+        "CREATE TABLE Docentes ("
         "id_docente INTEGER PRIMARY KEY,"
         "id_usuario INTEGER,"
         "MaterialExclusivoAccedido VARCHAR2(50) NOT NULL,"
@@ -52,15 +50,13 @@ tables = [
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Investigadores ("
+        "CREATE TABLE Investigadores ("
         "id_investigador INTEGER PRIMARY KEY,"
         "NivelAcceso VARCHAR2(50) NOT NULL"
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Libros ("
+        "CREATE TABLE Libros ("
         "id_libro INTEGER PRIMARY KEY,"
         "id_estudiante INTEGER,"
         "nombre VARCHAR2(50),"
@@ -73,8 +69,7 @@ tables = [
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Prestamos("
+        "CREATE TABLE Prestamos ("
         "Id_prestamo INTEGER PRIMARY KEY,"
         "id_estudiante INTEGER NOT NULL,"
         "Id_libro INTEGER NOT NULL,"
@@ -82,12 +77,11 @@ tables = [
         "fecha_prestamo DATE,"
         "fecha_devolucion DATE,"
         "FOREIGN KEY (id_estudiante) REFERENCES Estudiantes(id_estudiante),"
-        "FOREIGN KEY (Id_libro) REFERENCES Libro(id_libro)"
+        "FOREIGN KEY (id_libro) REFERENCES Libro(id_libro)"
         ")"
     ),
     (
-        "CREATE TABLE"
-        "DataSetsDescargados ("
+        "CREATE TABLE DataSetsDescargados ("
         "id_Data_Set_Descargado INTEGER PRIMARY KEY,"
         "id_investigador INTEGER NOT NULL,"
         "Nombre VARCHAR2(50) NOT NULL,"
@@ -96,8 +90,7 @@ tables = [
         ")"
     ),
     (
-        "CREATE TABLE"
-        "Biblioteca ("
+        "CREATE TABLE Biblioteca ("
         "id_Biblioteca INTEGER PRIMARY KEY,"
         "CantidadMaterial INTEGER NOT NULL,"
         "GestionPrestamo INTEGER NOT NULL"
@@ -107,6 +100,7 @@ tables = [
 
 for query in tables:
     create_schema(query)
+    conn.commit()
 
 def create_Usuarios(
         id_usuario: int,
@@ -231,7 +225,7 @@ def create_Libros(
         "id_estudiante": id_estudiante,
         "nombre": nombre,
         "autor": autor,
-        "anio_publicacion": datetime.strptime(anio_publicacion, "%Y-%m-%d"),
+        "anio_publicacion": anio_publicacion,
         "CantidadPaginas": CantidadPaginas,
         "Cantidad": Cantidad,
         "Descripcion": Descripcion
@@ -265,8 +259,8 @@ def create_Prestamos(
         "id_estudiante": id_estudiante,
         "id_libro": id_libro,
         "cantidad": cantidad,
-        "fecha_prestamo": datetime.strptime(fecha_prestamo, "%Y-%m-%d"),
-        "fecha_devolucion": datetime.strptime(fecha_devolucion, "%Y-%m-%d")
+        "fecha_prestamo": fecha_prestamo,
+        "fecha_devolucion": fecha_devolucion
     }
     try:
         with get_connection() as conn:
@@ -350,23 +344,18 @@ def read_Usuarios():
 
 
 
-def read_Usuarios_by_id(id):
-    sql = (
-        "Select * from Usuarios where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Usuarios_by_id(id_usuario):
+    sql = "SELECT * FROM Usuarios WHERE id_usuario = :id"
+    parametros = {"id": id_usuario}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Usuarios")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
 
 
 
@@ -387,23 +376,19 @@ def read_Estudiantes():
 
 
 
-def read_Estudiantes_by_id(id):
-    sql = (
-        "Select * from Estudiantes where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Estudiantes_by_id(id_estudiante):
+    sql = "SELECT * FROM Estudiantes WHERE id_estudiante = :id"
+    parametros = {"id": id_estudiante}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Estudiantes")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
+
 
 
 
@@ -425,24 +410,18 @@ def read_Docentes():
 
 
 
-def read_Docentes_by_id(id):
-    sql = (
-        "Select * from Docentes where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Docentes_by_id(id_docente):
+    sql = "SELECT * FROM Docentes WHERE id_docente = :id"
+    parametros = {"id": id_docente}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Docentes")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
-
 
 
 def read_Investigadores():
@@ -462,23 +441,18 @@ def read_Investigadores():
 
 
 
-def read_Investigadores_by_id(id):
-    sql = (
-        "Select * from Investigadores where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Investigadores_by_id(id_investigador):
+    sql = "SELECT * FROM Investigadores WHERE id_investigador = :id"
+    parametros = {"id": id_investigador}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Investigadores")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
 
 
 
@@ -499,24 +473,18 @@ def read_Libros():
 
 
 
-def read_Libros_by_id(id):
-    sql = (
-        "Select * from Libros where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Libros_by_id(id_libro):
+    sql = "SELECT * FROM Libros WHERE id_libro = :id"
+    parametros = {"id": id_libro}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Libros")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
-
 
 
 def read_Prestamos():
@@ -536,23 +504,18 @@ def read_Prestamos():
 
 
 
-def read_Prestamos_by_id(id):
-    sql = (
-        "Select * from Prestamos where id = :id"
-    )
-
-    parametros = {"id": id}
+def read_Prestamos_by_id(id_prestamo):
+    sql = "SELECT * FROM Prestamos WHERE id_prestamo = :id"
+    parametros = {"id": id_prestamo}
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                resultados = cur.execute(sql,parametros)
+                resultados = cur.execute(sql, parametros)
                 print("Consulta a la tabla Prestamos")
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"Error al insertar datos: {e}")
 
 
 
@@ -573,12 +536,12 @@ def read_DataSetsDescargados():
 
 
 
-def read_DataSetsDescargados_by_id(id):
+def read_DataSetsDescargados_by_id(id_Data_Set_Descargado):
     sql = (
-        "Select * from DataSetsDescargados where id = :id"
+        "Select * from DataSetsDescargados where id_Data_Set_Descargado = :id"
     )
 
-    parametros = {"id": id}
+    parametros = {"id_Data_Set_Descargado": id}
 
     try:
         with get_connection() as conn:
@@ -595,7 +558,7 @@ def read_DataSetsDescargados_by_id(id):
 
 def read_Biblioteca():
     sql = (
-        "Select * from Bilioteca"
+        "Select * from Biblioteca"
     )
     try:
         with get_connection() as conn:
@@ -610,12 +573,12 @@ def read_Biblioteca():
 
 
 
-def read_Biblioteca_by_id(id):
+def read_Biblioteca_by_id(id_Biblioteca):
     sql = (
-        "Select * from Biblioteca where id = :id"
+        "Select * from Biblioteca where id_Biblioteca = :id"
     )
 
-    parametros = {"id": id}
+    parametros = {"id_biblioteca": id}
 
     try:
         with get_connection() as conn:
@@ -648,7 +611,13 @@ def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Option
         print("No hay campos para actualizar.")         
         return      
     
-    sql = "UPDATE personas SET " + ", ".join(Modificaciones) + " WHERE id =: id" 
+    sql = "UPDATE Usuarios SET " + ", ".join(Modificaciones) + " WHERE id_usuario = :id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Usuario con RUT={rut} actualizado.") 
 
 
 def update_Estudiantes(id_estudiante,PrestamosActivos: Optional[int] = None,EstadoDeuda: Optional[str] = None):
@@ -665,6 +634,12 @@ def update_Estudiantes(id_estudiante,PrestamosActivos: Optional[int] = None,Esta
         return
 
     sql = "UPDATE Estudiantes SET " + ", ".join(modificaciones) + " WHERE id_estudiante =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Estudiante con ID={id_estudiante} actualizado.")
    
     
 
@@ -680,6 +655,12 @@ def update_Docentes(id_docente,MaterialExclusivoAccedido: Optional[str] = None):
 
     sql = "UPDATE Docentes SET " + ", ".join(modificaciones) + " WHERE id_docente =: id"
 
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Docente con ID={id_docente} actualizado.")
+
 
 def update_Investigadores(id_investigador,NivelAcceso: Optional[str] = None):
     modificaciones = []
@@ -692,6 +673,12 @@ def update_Investigadores(id_investigador,NivelAcceso: Optional[str] = None):
         return
 
     sql = "UPDATE Investigadores SET " + ", ".join(modificaciones) + " WHERE id_investigador =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Investigador con ID={id_investigador} actualizado.")
     
 
 def update_Libros(
@@ -712,7 +699,7 @@ def update_Libros(
         parametros["autor"] = autor
     if anio_publicacion is not None:         
         modificaciones.append("anio_publicacion =: anio_publicacion")         
-        parametros["anio_publicacion"] = datetime.strptime(anio_publicacion, "%Y-%m-%d") 
+        parametros["anio_publicacion"] = anio_publicacion 
     if CantidadPaginas is not None:         
         modificaciones.append("CantidadPaginas =: CantidadPaginas")         
         parametros["CantidadPaginas"] = CantidadPaginas
@@ -727,6 +714,14 @@ def update_Libros(
         return
     
     sql = "UPDATE Libros SET " + ", ".join(modificaciones) + " WHERE id_libro =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Libro con ID={id_libro} actualizado.")
+
+
 
 def update_Prestamos(id_prestamo :int,cantidad: Optional[int] = None,fecha_prestamo: Optional[str] = None,fecha_devolucion: Optional[str] = None):
     modificaciones = []     
@@ -746,6 +741,14 @@ def update_Prestamos(id_prestamo :int,cantidad: Optional[int] = None,fecha_prest
 
     sql = "UPDATE Prestamos SET " + ", ".join(modificaciones) + " WHERE id_prestamo =: id"
 
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Prestamo con ID={id_prestamo} actualizado.")
+
+
+
 def update_DataSetsDescargados(id_Data_Set_Descargado: int,Nombre: Optional[str] = None,Cantidad: Optional[int] = None):
     modificaciones = []     
     parametros = {"id": id_Data_Set_Descargado}
@@ -760,6 +763,12 @@ def update_DataSetsDescargados(id_Data_Set_Descargado: int,Nombre: Optional[str]
         return
 
     sql = "UPDATE DataSetsDescargados SET " + ", ".join(modificaciones) + " WHERE id_Data_Set_Descargado =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"DataSetDescargado con ID={id_Data_Set_Descargado} actualizado.")
     
 
 def update_Biblioteca(id_Biblioteca: int,CantidadMaterial: Optional[int] = None,GestionPrestamo: Optional[int] = None):
@@ -776,5 +785,11 @@ def update_Biblioteca(id_Biblioteca: int,CantidadMaterial: Optional[int] = None,
         return
 
     sql = "UPDATE Biblioteca SET " + ", ".join(modificaciones) + " WHERE id_Biblioteca =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"Biblioteca con ID={id_Biblioteca} actualizado.")
 
 
