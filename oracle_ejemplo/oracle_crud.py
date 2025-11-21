@@ -19,6 +19,7 @@ def create_schema(query):
             with connection.cursor() as cursor:
                 cursor.execute(query)
                 print(f"Tabla creada \n {query}")
+            connection.commit()
     except oracledb.DatabaseError as error:
         print(f"No se pudo crear la tabla: {error}")
 
@@ -89,7 +90,7 @@ tables = [
     ),
     (
         "CREATE TABLE Biblioteca ("
-        "id_Biblioteca INTEGER PRIMARY KEY,"
+        "id_biblioteca INTEGER PRIMARY KEY,"
         "CantidadMaterial INTEGER NOT NULL,"
         "GestionPrestamo INTEGER NOT NULL"
         ")"
@@ -98,7 +99,6 @@ tables = [
 
 for query in tables:
     create_schema(query)
-    conn.commit()
 
 def create_Usuarios(
         id_usuario: int,
@@ -121,11 +121,11 @@ def create_Usuarios(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Usuarios")
+            conn.commit()
+            print("Datos insertados en la tabla Usuarios")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 create_Usuarios(1, "Juan", "Pérez", "juan@example.com")
@@ -155,11 +155,11 @@ def create_Estudiantes(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Estudiantes")
+            conn.commit()
+            print("Datos insertados en la tabla Estudiantes")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 create_Estudiantes(1, 1, 2, "Sin deuda")
@@ -187,11 +187,11 @@ def create_Docentes(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Docentes")
+            conn.commit()
+            print("Datos insertados en la tabla Docentes")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_Docentes(1, 1, "Guia de Trigonometria")
@@ -219,11 +219,11 @@ def create_Investigadores(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Investigadores")
+            conn.commit()
+            print("Datos insertados en la tabla Investigadores")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_Investigadores(1, 1, "Alto")
@@ -261,11 +261,11 @@ def create_Libros(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Libros")
+            conn.commit()
+            print("Datos insertados en la tabla Libros")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_Libros(1, 1, "El Principito", "Antoine de Saint-Exupéry", 1943, 96, 5, "Clásico infantil")
@@ -299,11 +299,11 @@ def create_Prestamos(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Prestamos")
+            conn.commit()
+            print("Datos insertados en la tabla Prestamos")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_Prestamos(1, 1, 1, 1, "2025-01-10", "2025-01-20")
@@ -333,11 +333,11 @@ def create_DataSetsDescargados(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla DataSetsDescargados")
+            conn.commit()
+            print("Datos insertados en la tabla DataSetsDescargados")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_DataSetsDescargados(1, 1, "Genoma Humano", 3)
@@ -348,7 +348,7 @@ create_DataSetsDescargados(5, 5, "Salud Pública", 1)
 
 
 def create_Biblioteca(
-        id_Biblioteca: int,
+        id_biblioteca: int,
         CantidadMaterial: int,
         GestionPrestamo: int
 ):
@@ -357,7 +357,7 @@ def create_Biblioteca(
         "VALUES (:id_Biblioteca, :CantidadMaterial, :GestionPrestamo)"
     )
     parametros = {
-        "id_Biblioteca": id_Biblioteca,
+        "id_Biblioteca": id_biblioteca,
         "CantidadMaterial": CantidadMaterial,
         "GestionPrestamo": GestionPrestamo
     }
@@ -365,11 +365,11 @@ def create_Biblioteca(
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, parametros)
-                conn.commit()
-                print("Datos insertados en la tabla Biblioteca")
+            conn.commit()
+            print("Datos insertados en la tabla Biblioteca")
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
     
 
 create_Biblioteca(1, 2000, 300)
@@ -393,7 +393,7 @@ def read_Usuarios():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -410,6 +410,8 @@ def read_Usuarios_by_id(id_usuario):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -426,7 +428,7 @@ def read_Estudiantes():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -442,6 +444,8 @@ def read_Estudiantes_by_id(id_estudiante):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -460,7 +464,7 @@ def read_Docentes():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -476,6 +480,8 @@ def read_Docentes_by_id(id_docente):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 def read_Investigadores():
@@ -491,7 +497,7 @@ def read_Investigadores():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -507,6 +513,8 @@ def read_Investigadores_by_id(id_investigador):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -523,7 +531,7 @@ def read_Libros():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -539,6 +547,8 @@ def read_Libros_by_id(id_libro):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 def read_Prestamos():
@@ -554,7 +564,7 @@ def read_Prestamos():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -570,6 +580,8 @@ def read_Prestamos_by_id(id_prestamo):
                 for row in resultados:
                     print(row)
     except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -586,7 +598,7 @@ def read_DataSetsDescargados():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -606,7 +618,7 @@ def read_DataSetsDescargados_by_id(id_Data_Set_Descargado):
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
@@ -623,13 +635,13 @@ def read_Biblioteca():
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 
-def read_Biblioteca_by_id(id_Biblioteca):
+def read_Biblioteca_by_id(id_biblioteca):
     sql = (
-        "Select * from Biblioteca where id_Biblioteca = :id"
+        "Select * from Biblioteca where id_biblioteca = :id"
     )
 
     parametros = {"id_biblioteca": id}
@@ -643,7 +655,7 @@ def read_Biblioteca_by_id(id_Biblioteca):
                     print(row)
     except oracledb.DatabaseError as e:
         err = e
-        print(f"Error al insertar datos: {e}")
+        print(f"Error al insertar datos: {err}")
 
 
 def update_Usuarios(id_usuario, nombres: Optional[str] = None, apellidos: Optional[str] = None, correo: Optional[str] = None ):
@@ -822,9 +834,9 @@ def update_DataSetsDescargados(id_Data_Set_Descargado: int,Nombre: Optional[str]
         print(f"DataSetDescargado con ID={id_Data_Set_Descargado} actualizado.")
     
 
-def update_Biblioteca(id_Biblioteca: int,CantidadMaterial: Optional[int] = None,GestionPrestamo: Optional[int] = None):
+def update_Biblioteca(id_biblioteca: int,CantidadMaterial: Optional[int] = None,GestionPrestamo: Optional[int] = None):
     modificaciones = []     
-    parametros = {"id": id_Biblioteca}
+    parametros = {"id": id_biblioteca}
     if CantidadMaterial is not None:         
         modificaciones.append("CantidadMaterial =: CantidadMaterial")         
         parametros["CantidadMaterial"] = CantidadMaterial
@@ -835,12 +847,255 @@ def update_Biblioteca(id_Biblioteca: int,CantidadMaterial: Optional[int] = None,
         print("No hay campos para actualizar.")         
         return
 
-    sql = "UPDATE Biblioteca SET " + ", ".join(modificaciones) + " WHERE id_Biblioteca =: id"
+    sql = "UPDATE Biblioteca SET " + ", ".join(modificaciones) + " WHERE id_biblioteca =: id"
 
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, parametros)
         conn.commit()
-        print(f"Biblioteca con ID={id_Biblioteca} actualizado.")
+        print(f"Biblioteca con ID={id_biblioteca} actualizado.")
 
 
+def delete_Usuario(id_usuario:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_usuario = :id"
+    }
+
+    parametros = {"id": id_usuario}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+def delete_Estudiante(id_estudiante:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_estudiante = :id"
+    }
+
+    parametros = {"id": id_estudiante}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+def delete_Docente(id_docente:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_docente = :id"
+    }
+
+    parametros = {"id": id_docente}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+def delete_investigador(id_investigador:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_investigador = :id"
+    }
+
+    parametros = {"id": id_investigador}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+def delete_Libro(id_libro:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_libro = :id"
+    }
+
+    parametros = {"id": id_libro}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+
+def delete_prestamo(id_prestamo:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_prestamo = :id"
+    }
+
+    parametros = {"id": id_prestamo}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+
+def delete_Data_Set_Descargado(id_Data_Set_Descargado:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_Data_Set_Descargado = :id"
+    }
+
+    parametros = {"id": id_Data_Set_Descargado}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+
+
+
+def delete_Biblioteca(id_biblioteca:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_biblioteca = :id"
+    }
+
+    parametros = {"id": id_biblioteca}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
+
+def menu_Usuarios():
+    while True:
+        """
+            ==========================================
+            |          Menu Usuarios          |
+            ==========================================
+            |----------------------------------------|
+            ==========================================
+            |1.Insertar Usuarios                     | 
+            |----------------------------------------|
+            |2. TABLA USUARIOS                       |
+            |----------------------------------------|
+            |3. TABLA ESTUDIANTES                    |
+            |----------------------------------------|
+            |4. TABLA DOCENTES                       |
+            |----------------------------------------|
+            |5. TABLA INVESTIGADORES                 |
+            |----------------------------------------|
+            |6. TABLA LIBROS                         |
+            |----------------------------------------|
+            |7. TABLA PRESTAMOS                      |
+            |----------------------------------------|
+            |8. TABLA DataSetsDescargados            |
+            |----------------------------------------|
+            |9. TABLA BIBLIOTECA                     |
+            |----------------------------------------|
+            |0. SALIR                                |  
+            |----------------------------------------|                                                        
+            ==========================================
+            """
+        
+
+import os 
+def main():
+    while True:
+        os.system("cis")
+        print(
+            """
+            ==========================================
+            |          CRUD CON ORACLESLQ            |
+            ==========================================
+            |----------------------------------------|
+            ==========================================
+            |1.APLICAR ESQUEMA EN LA BASE DE DATOS   | 
+            |----------------------------------------|
+            |2. TABLA USUARIOS                       |
+            |----------------------------------------|
+            |3. TABLA ESTUDIANTES                    |
+            |----------------------------------------|
+            |4. TABLA DOCENTES                       |
+            |----------------------------------------|
+            |5. TABLA INVESTIGADORES                 |
+            |----------------------------------------|
+            |6. TABLA LIBROS                         |
+            |----------------------------------------|
+            |7. TABLA PRESTAMOS                      |
+            |----------------------------------------|
+            |8. TABLA DataSetsDescargados            |
+            |----------------------------------------|
+            |9. TABLA BIBLIOTECA                     |
+            |----------------------------------------|
+            |0. SALIR                                |  
+            |----------------------------------------|                                                        
+            ==========================================
+            """
+        )
+        opcion = input("Selecciona una opcion [1-9, 0 para salir] : ")
+
+        if opcion == "0":
+            print("Adios :)")
+            input("Presiona ENTER para continuar...")
+            break
+        elif opcion == "1":
+            pass
+        elif opcion == "2":
+            pass
+        elif opcion == "3":
+            pass
+        elif opcion == "4":
+            pass
+        elif opcion == "5":
+            pass
+        elif opcion == "6":
+            pass
+        elif opcion == "7":
+            pass
+        elif opcion == "8":
+            pass
+        elif opcion == "9":
+            pass
+        else:
+            print("Opcion invalida")
+            print("Presiona ENTER para continuar...")
+            break
+
+
+if __name__ == "__main__":
+    main()
