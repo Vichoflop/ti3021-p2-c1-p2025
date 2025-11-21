@@ -1,4 +1,4 @@
- from typing import Optional
+from typing import Optional
 import oracledb
 import os
 from dotenv import load_dotenv
@@ -231,7 +231,7 @@ def create_Libros(
         "id_estudiante": id_estudiante,
         "nombre": nombre,
         "autor": autor,
-        "anio_publicacion": anio_publicacion,
+        "anio_publicacion": datetime.strptime(anio_publicacion, "%Y-%m-%d"),
         "CantidadPaginas": CantidadPaginas,
         "Cantidad": Cantidad,
         "Descripcion": Descripcion
@@ -265,8 +265,8 @@ def create_Prestamos(
         "id_estudiante": id_estudiante,
         "id_libro": id_libro,
         "cantidad": cantidad,
-        "fecha_prestamo": fecha_prestamo,
-        "fecha_devolucion": fecha_devolucion
+        "fecha_prestamo": datetime.strptime(fecha_prestamo, "%Y-%m-%d"),
+        "fecha_devolucion": datetime.strptime(fecha_devolucion, "%Y-%m-%d")
     }
     try:
         with get_connection() as conn:
