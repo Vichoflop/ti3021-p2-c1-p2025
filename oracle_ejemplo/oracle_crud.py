@@ -15,13 +15,14 @@ def get_connection():
 
 def create_schema(query):
     try:
-        with get_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query)
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query)
                 print(f"Tabla creada \n {query}")
-            connection.commit()
-    except oracledb.DatabaseError as error:
-        print(f"No se pudo crear la tabla: {error}")
+            conn.commit()
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"No se pudo crear la tabla: {err} \n {query}")
 
 def create_all_tables():
     tables = [
@@ -99,15 +100,13 @@ def create_all_tables():
             ")"
         )
     ]
-
-for query in tables:
-    create_schema(query)
+    for query in create_all_tables:
+        create_schema(query)
 
 def create_Usuarios(
         id_usuario: int,
-        nombres: str,
-        apellidos: str,
-        rut: str,
+        nombre: str,
+        apellido: str,
         correo: str
 ):
     sql = (
@@ -894,7 +893,7 @@ def delete_Libro(id_libro:int):
 
 
 
-def delete_prestamo(id_prestamo:int):
+def delete_Prestamo(id_prestamo:int):
     sql ={
         "DELETE FROM Usuarios WHERE id_prestamo = :id"
     }
@@ -983,7 +982,7 @@ def menu_Usuarios():
                 nombre = input("Ingrese el nombre del Usuario: ")
                 apellido = input("Ingrese el apellido del Usuario: ")
                 correo = input("Ingrese el correo del Usuario: ")
-                create_Usuario(id_usuario,nombre,apellido,correo)
+                create_Usuarios(id_usuario,nombre,apellido,correo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -994,7 +993,7 @@ def menu_Usuarios():
         elif opcion == "3":
             try:
                 id_usuario = int(input("Ingrese el id numerico del Usuario: "))
-                read_Usuario_by_id(id_usuario)
+                read_Usuarios_by_id(id_usuario)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1012,7 +1011,7 @@ def menu_Usuarios():
                     apellidos = None
                 if len(correo.strip()) == 0:
                     correo = None
-                update_Usuario(id_usuario,nombre,apellido,correo)
+                update_Usuarios(id_usuario,nombre,apellido,correo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1070,7 +1069,7 @@ def menu_Estudiantes():
                     print("❌ Opción no válida. Debe ingresar: pendiente, devuelto o retrasado.")
                     estado_deuda = input("Ingrese nuevamente el estado de deuda: ").strip().lower()
                 print("✔️ Estado de deuda registrado correctamente:", estado_deuda)
-                create_Estudiante(id_estudiante,prestamos_activos,estado_deuda)
+                create_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1081,7 +1080,7 @@ def menu_Estudiantes():
         elif opcion == "3":
             try:
                 id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
-                read_Estudiante_by_id(id_estudiante)
+                read_Estudiantes_by_id(id_estudiante)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1096,7 +1095,7 @@ def menu_Estudiantes():
                     prestamos_activos = None
                 if len(estado_deuda.strip()) == 0:
                     estado_deuda = None
-                update_Estudiante(id_estudiante,prestamos_activos,estado_deuda)
+                update_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1148,7 +1147,7 @@ def menu_Docentes():
             try:
                 id_docente = int(input("Ingrese el id numerico del Docente: "))
                 material_exclusivo_accedido = input("Ingrese el material exclusivo accedido del Docente: ")
-                create_Docente(id_docente,material_exclusivo_accedido)
+                create_Docentes(id_docente,material_exclusivo_accedido)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1159,7 +1158,7 @@ def menu_Docentes():
         elif opcion == "3":
             try:
                 id_docente = int(input("Ingrese el id numerico del Docente: "))
-                read_Docente_by_id(id_docente)
+                read_Docentes_by_id(id_docente)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1171,7 +1170,7 @@ def menu_Docentes():
                 material_exclusivo_accedido = input("Ingrese el material exclusivo accedido del Docente: ")
                 if len(material_exclusivo_accedido.strip()) == 0:
                     material_exclusivo_accedido = None
-                update_Docente(id_docente,material_exclusivo_accedido)
+                update_Docentes(id_docente,material_exclusivo_accedido)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1224,7 +1223,7 @@ def menu_Investigadores():
             try:
                 id_investigador = int(input("Ingrese el id numerico del Investigador: "))
                 nivel_acceso = input("Ingrese el nivel de acceso del Investigador: ")
-                create_Investigador(id_investigador,nivel_acceso)
+                create_Investigadores(id_investigador,nivel_acceso)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1235,7 +1234,7 @@ def menu_Investigadores():
         elif opcion == "3":
             try:
                 id_investigador = int(input("Ingrese el id numerico del Investigador: "))
-                read_Investigador_by_id(id_investigador)
+                read_Investigadores_by_id(id_investigador)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1247,7 +1246,7 @@ def menu_Investigadores():
                 nivel_acceso = input("Ingrese el nivel de acceso del Investigador: ")
                 if len(nivel_acceso.strip()) == 0:
                     nivel_acceso = None
-                update_Investigador(id_investigador,nivel_acceso)
+                update_Investigadores(id_investigador,nivel_acceso)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1305,7 +1304,7 @@ def menu_Libros():
                 cantidad_paginas = int(input("Ingrese la cantidad de páginas del Libro: "))
                 cantidad = int(input("Ingrese la cantidad del Libro: "))
                 descripcion = input("Ingrese la descripción del Libro: ")
-                create_Libro(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
+                create_Libros(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1316,7 +1315,7 @@ def menu_Libros():
         elif opcion == "3":
             try:
                 id_libro = int(input("Ingrese el id numerico del Libro: "))
-                read_Libro_by_id(id_libro)
+                read_Libros_by_id(id_libro)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1343,7 +1342,7 @@ def menu_Libros():
                     cantidad = None
                 if len(descripcion.strip()) == 0:
                     descripcion = None
-                update_Libro(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
+                update_Libros(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1398,7 +1397,7 @@ def menu_Prestamos():
                 cantidad = int(input("Ingrese la cantidad del Prestamo: "))
                 fecha_prestamo = input("Ingrese la fecha de prestamo del Prestamo (YYYY-MM-DD): ")
                 fecha_devolucion = input("Ingrese la fecha de devolucion del Prestamo (YYYY-MM-DD): ")
-                create_Prestamo(id_prestamo,cantidad,fecha_prestamo,fecha_devolucion)
+                create_Prestamos(id_prestamo,cantidad,fecha_prestamo,fecha_devolucion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1409,7 +1408,7 @@ def menu_Prestamos():
         elif opcion == "3":
             try:
                 id_prestamo = int(input("Ingrese el id numerico del Prestamo: "))
-                read_Prestamo_by_id(id_prestamo)
+                read_Prestamos_by_id(id_prestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1427,7 +1426,7 @@ def menu_Prestamos():
                     fecha_prestamo = None
                 if len(fecha_devolucion.strip()) == 0:
                     fecha_devolucion = None
-                update_Prestamo(id_prestamo,cantidad,fecha_prestamo,fecha_devolucion)
+                update_Prestamos(id_prestamo,cantidad,fecha_prestamo,fecha_devolucion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1435,7 +1434,7 @@ def menu_Prestamos():
         elif opcion == "5":
             try:
                 id_prestamo = int(input("Ingrese el id numerico del prestamo: "))
-                delete_prestamo(id_prestamo)
+                delete_Prestamo(id_prestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1481,7 +1480,7 @@ def menu_DataSetsDescargados():
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 Nombre = input("Ingrese el nombre del DataSetDescargado: ")
                 Cantidad = int(input("Ingrese la cantidad del DataSetDescargado: "))
-                create_DataSetDescargado(id_Data_Set_Descargado,Nombre,Cantidad)
+                create_DataSetsDescargados(id_Data_Set_Descargado,Nombre,Cantidad)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1492,7 +1491,7 @@ def menu_DataSetsDescargados():
         elif opcion == "3":
             try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
-                read_DataSetDescargado_by_id(id_Data_Set_Descargado)
+                read_DataSetsDescargados_by_id(id_Data_Set_Descargado)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1567,7 +1566,7 @@ def menu_Biblioteca():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Bibliotecas()
+            read_Biblioteca()
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
             try:
