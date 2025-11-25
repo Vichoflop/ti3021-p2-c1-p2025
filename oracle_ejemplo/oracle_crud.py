@@ -93,6 +93,15 @@ def create_all_tables():
             ")"
         ),
         (
+            "CREATE TABLE MaterialExclusivo ("
+            "id_material_exclusivo  INTEGER PRIMARY KEY,"
+            "id_docente             INTEGER NOT NULL,"
+            "nombre                 VARCHAR2(150) NOT NULL,"
+            "descripcion            VARCHAR2(300) NOT NULL,"
+            "FOREIGN KEY (id_docente) REFERENCES Docentes(id_docente)"
+            ")"
+        ),
+        (
             "CREATE TABLE Biblioteca ("
             "id_biblioteca INTEGER PRIMARY KEY,"
             "CantidadMaterial INTEGER NOT NULL,"
@@ -100,7 +109,7 @@ def create_all_tables():
             ")"
         )
     ]
-    for query in create_all_tables:
+    for query in tables:
         create_schema(query)
 
 def create_Usuarios(
@@ -296,6 +305,32 @@ def create_DataSetsDescargados(
                 cur.execute(sql, parametros)
             conn.commit()
             print("Datos insertados en la tabla DataSetsDescargados")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
+
+def create_MaterialExclusivo(
+        id_material_exclusivo: int,
+        id_docente: int,
+        nombre: str,
+        descripcion: str
+):
+    sql = (
+        "INSERT INTO MaterialExclusivo (id_material_exclusivo, id_docente, nombre, descripcion) "
+        "VALUES (:id_material_exclusivo, :id_docente, :nombre, :descripcion)"
+    )
+    parametros = {
+        "id_material_exclusivo": id_material_exclusivo,
+        "id_docente": id_docente,
+        "nombre": nombre,
+        "descripcion": descripcion
+    }
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print("Datos insertados en la tabla MaterialExclusivo")
     except oracledb.DatabaseError as e:
         err = e
         print(f"Error al insertar datos: {err}")
@@ -567,6 +602,39 @@ def read_DataSetsDescargados_by_id(id_Data_Set_Descargado):
         print(f"Error al insertar datos: {err}")
 
 
+def read_MaterialExclusivo():
+    sql = (
+        "Select * from MaterialExclusivo"
+    )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql)
+                print("Consulta a la tabla MaterialExclusivo")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
+
+
+def read_MaterialExclusivo_by_id(id_material_exclusivo):
+    sql = (
+        "Select * from MaterialExclusivo where id_material_exclusivo = :id"
+    )
+
+    parametros = {"id_material_exclusivo": id}
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                resultados = cur.execute(sql,parametros)
+                print("Consulta a la tabla MaterialExclusivo")
+                for row in resultados:
+                    print(row)
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al insertar datos: {err}")
 
 def read_Biblioteca():
     sql = (
@@ -778,6 +846,27 @@ def update_DataSetsDescargados(id_Data_Set_Descargado: int,Nombre: Optional[str]
             cur.execute(sql, parametros)
         conn.commit()
         print(f"DataSetDescargado con ID={id_Data_Set_Descargado} actualizado.")
+
+def update_MaterialExclusivo(id_material_exclusivo: int,nombre: Optional[str] = None,descripcion: Optional[str] = None):
+    modificaciones = []     
+    parametros = {"id": id_material_exclusivo}
+    if nombre is not None:         
+        modificaciones.append("nombre =: nombre")         
+        parametros["nombre"] = nombre
+    if descripcion is not None:         
+        modificaciones.append("descripcion =: descripcion")         
+        parametros["descripcion"] = descripcion
+    if not modificaciones:         
+        print("No hay campos para actualizar.")         
+        return
+
+    sql = "UPDATE MaterialExclusivo SET " + ", ".join(modificaciones) + " WHERE id_material_exclusivo =: id"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, parametros)
+        conn.commit()
+        print(f"MaterialExclusivo con ID={id_material_exclusivo} actualizado.")
     
 
 def update_Biblioteca(id_biblioteca: int,CantidadMaterial: Optional[int] = None,GestionPrestamo: Optional[int] = None):
@@ -928,6 +1017,21 @@ def delete_Data_Set_Descargado(id_Data_Set_Descargado:int):
         err = e
         print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
 
+def delete_Material_Exclusivo(id_material_exclusivo:int):
+    sql ={
+        "DELETE FROM Usuarios WHERE id_material_exclusivo = :id"
+    }
+
+    parametros = {"id": id_material_exclusivo}
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, parametros)
+            conn.commit()
+            print(f"Dato eliminado \n {parametros}")
+    except oracledb.DatabaseError as e:
+        err = e
+        print(f"Error al eliminar datos: {err} \n {sql} \n {parametros}")
 
 
 
@@ -981,50 +1085,47 @@ def menu_Usuarios():
                 id_usuario = int(input("Ingrese el id numerico del Usuario: "))
                 nombre = input("Ingrese el nombre del Usuario: ")
                 apellido = input("Ingrese el apellido del Usuario: ")
-                correo = input("Ingrese el correo del Usuario: ")
+                if nombre and apellido:
+                    correo = f"{nombre.lower()}.{apellido.lower()}@correo.cl"
+                    print(f"📧 Nuevo correo generado: {correo}")
+                else:
+                    correo = None
                 create_Usuarios(id_usuario,nombre,apellido,correo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Usuarios()
+            id_usuario = int(input("Ingrese el id numerico del Usuario: "))
+            read_Usuarios_by_id(id_usuario)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
             try:
                 id_usuario = int(input("Ingrese el id numerico del Usuario: "))
                 read_Usuarios_by_id(id_usuario)
+                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
+                nombre = input("Nuevo nombre: ").strip()
+                apellido = input("Nuevo apellido: ").strip()
+                if nombre and apellido:
+                    correo = f"{nombre.lower()}.{apellido.lower()}@correo.cl"
+                    print(f"📧 Nuevo correo generado: {correo}")
+                else:
+                    correo = None
+                update_Usuarios(id_usuario,nombre if nombre else None,apellido if apellido else None,correo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
         elif opcion == "4":
             try:
-                id_usuario = int(input("Ingrese el id numerico del Usuario: "))
-                print("⚠️ Sólo digite cuándo quiera modificar el dato")
-                nombre = input("Ingrese el nombre del Usuario: ")
-                apellido = input("Ingrese el apellido del Usuario: ")
-                correo = input("Ingrese el correo del Usuario: ")
-                if len(nombre.strip()) == 0:
-                    nombres = None
-                if len(apellido.strip()) == 0:
-                    apellidos = None
-                if len(correo.strip()) == 0:
-                    correo = None
-                update_Usuarios(id_usuario,nombre,apellido,correo)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-
-            input("Presiona ENTER para continuar...")
-        elif opcion == "5":
-            try:
                 id_usuario = int(input("Ingrese el id numerico del usuario: "))
                 delete_Usuario(id_usuario)
             except ValueError:
                 print("Ingresaste un valor no númerico")
-            
+               
+
             input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1075,32 +1176,26 @@ def menu_Estudiantes():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Estudiantes()
+            id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
+            read_Estudiantes_by_id(id_estudiante)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
             try:
                 id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
                 read_Estudiantes_by_id(id_estudiante)
+                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
+                prestamos_activos_input = input("Nueva cantidad de prestamos activos: ").strip()
+                prestamos_activos = int(prestamos_activos_input) if prestamos_activos_input else None
+                estado_deuda = input("Nuevo estado de deuda (pendiente-devuelto-retrasado): ").strip().lower()
+                if estado_deuda and estado_deuda not in ["pendiente", "devuelto", "retrasado"]:
+                    print("❌ Opción no válida. Debe ingresar: pendiente, devuelto o retrasado.")
+                    estado_deuda = None
+                update_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)               
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
         elif opcion == "4":
-            try:
-                id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
-                print("⚠️ Sólo digite cuándo quiera modificar el dato")
-                prestamos_activos = input("Ingrese la cantidad de prestamos activos del Estudiante: ")
-                estado_deuda = input("Ingrese el estado de deuda del Estudiante: ")
-                if len(prestamos_activos.strip()) == 0:
-                    prestamos_activos = None
-                if len(estado_deuda.strip()) == 0:
-                    estado_deuda = None
-                update_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-
-            input("Presiona ENTER para continuar...")
-        elif opcion == "5":
             try:
                 id_estudiante = int(input("Ingrese el id numerico del estudiante: "))
                 delete_Estudiante(id_estudiante)
@@ -1108,7 +1203,9 @@ def menu_Estudiantes():
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        else:
+
+            input("Presiona ENTER para continuar...")
+        elif opcion == "5":            
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1153,7 +1250,8 @@ def menu_Docentes():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Docentes()
+            id_docente = int(input("Ingrese el id numerico del Docente: "))
+            read_Docentes_by_id(id_docente)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
             try:
@@ -1229,17 +1327,10 @@ def menu_Investigadores():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Investigadores()
+            id_investigador = int(input("Ingrese el id numerico del Investigador: "))
+            read_Investigadores_by_id(id_investigador)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
-            try:
-                id_investigador = int(input("Ingrese el id numerico del Investigador: "))
-                read_Investigadores_by_id(id_investigador)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        elif opcion == "4":
             try:
                 id_investigador = int(input("Ingrese el id numerico del Investigador: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
@@ -1251,7 +1342,7 @@ def menu_Investigadores():
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4":
             try:
                 id_investigador = int(input("Ingrese el id numerico del investigador: "))
                 delete_investigador(id_investigador)
@@ -1259,7 +1350,7 @@ def menu_Investigadores():
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1310,18 +1401,11 @@ def menu_Libros():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Libros()
+            id_libro = int(input("Ingrese el id numerico del Libro: "))
+            read_Libros_by_id(id_libro)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
-            try:
-                id_libro = int(input("Ingrese el id numerico del Libro: "))
-                read_Libros_by_id(id_libro)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        elif opcion == "4":
-            try:
+             try:
                 id_libro = int(input("Ingrese el id numerico del Libro: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 nombre = input("Ingrese el nombre del Libro: ")
@@ -1347,15 +1431,15 @@ def menu_Libros():
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
-            try:
+        elif opcion == "4":
+             try:
                 id_libro = int(input("Ingrese el id numerico del libro: "))
                 delete_Libro(id_libro)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1403,17 +1487,14 @@ def menu_Prestamos():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Prestamos()
-            input("Presiona ENTER para continuar...")
-        elif opcion == "3":
-            try:
+             try:
                 id_prestamo = int(input("Ingrese el id numerico del Prestamo: "))
                 read_Prestamos_by_id(id_prestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        elif opcion == "4":
+        elif opcion == "3":
             try:
                 id_prestamo = int(input("Ingrese el id numerico del Prestamo: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
@@ -1431,15 +1512,14 @@ def menu_Prestamos():
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4":
             try:
                 id_prestamo = int(input("Ingrese el id numerico del prestamo: "))
                 delete_Prestamo(id_prestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
-            input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1486,18 +1566,15 @@ def menu_DataSetsDescargados():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_DataSetsDescargados()
-            input("Presiona ENTER para continuar...")
-        elif opcion == "3":
-            try:
+             try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 read_DataSetsDescargados_by_id(id_Data_Set_Descargado)
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        elif opcion == "4":
-            try:
+        elif opcion == "3":
+             try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 Nombre = input("Ingrese el nombre del DataSetDescargado: ")
@@ -1511,7 +1588,7 @@ def menu_DataSetsDescargados():
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4":
             try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 delete_Data_Set_Descargado(id_Data_Set_Descargado)
@@ -1519,7 +1596,87 @@ def menu_DataSetsDescargados():
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
+            print("Opción invalida")
+            input("Presiona ENTER para continuar...")
+            break
+
+
+def menu_MaterialExclusivo():
+    while True:
+        os.system("cls")
+        print("""
+            ==========================================
+            |          Menu MaterialExclusivo        |
+            ==========================================
+            |----------------------------------------|
+            ==========================================
+            |1.Insertar MaterialExclusivo            | 
+            |----------------------------------------|
+            |2. Leer MaterialExclusivo por Id        |
+            |----------------------------------------|
+            |3. Modificar MaterialExclusivo          |
+            |----------------------------------------|
+            |4. Eliminar MaterialExclusivo           |
+            |----------------------------------------|
+            |0. Volver al Menu Principal             |  
+            |----------------------------------------|                                                        
+            ==========================================
+            """
+        )
+        opcion = input("Selecciona una opcion [1-4, 0 para volver al menu principal]: ")
+
+        if opcion == "0":
+            os.system("cls")
+            print("Volviendo al menú principal ヾ(•ω•`)o")
+            input("Presiona ENTER para continuar...")
+            break
+        elif opcion == "1":
+            try:
+                id_material_exclusivo = int(input("Ingrese el id numerico del MaterialExclusivo: "))
+                id_docente = int(input("Ingrese el id numerico del Docente asociado: "))
+                nombre = input("Ingrese el nombre del MaterialExclusivo: ")
+                descripcion = input("Ingrese la descripcion del MaterialExclusivo: ")
+                create_MaterialExclusivo(id_material_exclusivo,id_docente,nombre,descripcion)
+            except ValueError:
+                print("Ingresaste un valor no númerico")
+
+            input("Presiona ENTER para continuar...")
+        elif opcion == "2":
+            try:
+                id_material_exclusivo = int(input("Ingrese el id numerico del MaterialExclusivo: "))
+                read_MaterialExclusivo_by_id(id_material_exclusivo)
+            except ValueError:
+                print("Ingresaste un valor no númerico")
+            
+            input("Presiona ENTER para continuar...")
+        elif opcion == "3":
+            try:
+                id_material_exclusivo = int(input("Ingrese el id numerico del MaterialExclusivo: "))
+                print("⚠️ Sólo digite cuándo quiera modificar el dato")
+                id_docente = input("Ingrese el id numerico del Docente asociado: ")
+                nombre = input("Ingrese el nombre del MaterialExclusivo: ")
+                descripcion = input("Ingrese la descripcion del MaterialExclusivo: ")
+                if len(id_docente.strip()) == 0:
+                    id_docente = None
+                if len(nombre.strip()) == 0:
+                    nombre = None
+                if len(descripcion.strip()) == 0:
+                    descripcion = None
+                update_MaterialExclusivo(id_material_exclusivo,id_docente,nombre,descripcion)
+            except ValueError:
+                print("Ingresaste un valor no númerico")
+
+            input("Presiona ENTER para continuar...")
+        elif opcion == "4":
+            try:
+                id_material_exclusivo = int(input("Ingrese el id numerico del MaterialExclusivo: "))
+                delete_Material_Exclusivo(id_material_exclusivo)
+            except ValueError:
+                print("Ingresaste un valor no númerico")
+            
+            input("Presiona ENTER para continuar...")
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1566,17 +1723,10 @@ def menu_Biblioteca():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-            read_Biblioteca()
-            input("Presiona ENTER para continuar...")
-        elif opcion == "3":
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
                 read_Biblioteca_by_id(id_biblioteca)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        elif opcion == "4": 
+        elif opcion == "3":
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
@@ -1591,7 +1741,7 @@ def menu_Biblioteca():
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4": 
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del biblioteca: "))
                 delete_Biblioteca(id_biblioteca)
@@ -1599,7 +1749,7 @@ def menu_Biblioteca():
                 print("Ingresaste un valor no númerico")
             
             input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1633,12 +1783,13 @@ def main():
             |----------------------------------------|
             |9. TABLA BIBLIOTECA                     |
             |----------------------------------------|
+            |10. TABLA MATERIALEXCLUSIVO             |
             |0. SALIR                                |  
             |----------------------------------------|                                                        
             ==========================================
             """
         )
-        opcion = input("Selecciona una opcion [1-9, 0 para salir] : ")
+        opcion = input("Selecciona una opcion [1-10, 0 para salir] : ")
 
         if opcion == "0":
             print("Adios :)")
@@ -1663,6 +1814,8 @@ def main():
             menu_DataSetsDescargados()
         elif opcion == "9":
             menu_Biblioteca()
+        elif opcion == "10":
+            menu_MaterialExclusivo()
         else:
             print("Opcion invalida")
             print("Presiona ENTER para continuar...")

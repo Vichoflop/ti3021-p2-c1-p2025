@@ -62,6 +62,14 @@ CREATE TABLE DataSetsDescargados(
     FOREIGN KEY (id_investigador) REFERENCES Investigadores(id_investigador)
 );
 
+CREATE TABLE MaterialExclusivo (
+    id_material_exclusivo  INTEGER PRIMARY KEY,
+    id_docente             INTEGER NOT NULL,
+    nombre                 VARCHAR2(150) NOT NULL,
+    descripcion            VARCHAR2(300) NOT NULL,
+    FOREIGN KEY (id_docente) REFERENCES Docentes(id_docente)
+);
+
 
 CREATE TABLE Biblioteca(
     id_biblioteca       INTEGER PRIMARY KEY,
