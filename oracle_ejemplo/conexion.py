@@ -4,9 +4,9 @@ from dotenv import load_dotenv
  
 load_dotenv()  
 
-username = os.getenv("ORACLE_USER") 
-dsn = os.getenv("ORACLE_DSN") 
-password = os.getenv("ORACLE_PASSWORD") 
+username = os.getenv("prueba_poo") 
+dsn = os.getenv("localhost:1521/XEPDB1") 
+password = os.getenv("prueba_poo") 
 
 
 

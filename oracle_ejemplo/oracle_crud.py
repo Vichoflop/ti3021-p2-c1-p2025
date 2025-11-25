@@ -6,9 +6,9 @@ from datetime import datetime
 
 load_dotenv()
 
-username= os.getenv("ORACLE_USER")
-dsn = os.getenv("ORACLE_DSN")
-password = os.getenv("ORACLE_PASSWORD")
+username= os.getenv("prueba_poo")
+dsn = os.getenv("localhost:1521/XEPDB1")
+password = os.getenv("prueba_poo")
 
 def get_connection():
     return oracledb.connect(user = username, password = password, dsn = dsn)
@@ -1405,7 +1405,7 @@ def menu_Libros():
             read_Libros_by_id(id_libro)
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
-             try:
+            try:
                 id_libro = int(input("Ingrese el id numerico del Libro: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 nombre = input("Ingrese el nombre del Libro: ")
@@ -1432,7 +1432,7 @@ def menu_Libros():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "4":
-             try:
+            try:
                 id_libro = int(input("Ingrese el id numerico del libro: "))
                 delete_Libro(id_libro)
             except ValueError:
@@ -1487,7 +1487,7 @@ def menu_Prestamos():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-             try:
+            try:
                 id_prestamo = int(input("Ingrese el id numerico del Prestamo: "))
                 read_Prestamos_by_id(id_prestamo)
             except ValueError:
@@ -1566,7 +1566,7 @@ def menu_DataSetsDescargados():
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
-             try:
+            try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 read_DataSetsDescargados_by_id(id_Data_Set_Descargado)
             except ValueError:
@@ -1574,7 +1574,7 @@ def menu_DataSetsDescargados():
             
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
-             try:
+            try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 Nombre = input("Ingrese el nombre del DataSetDescargado: ")
@@ -1726,6 +1726,8 @@ def menu_Biblioteca():
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
                 read_Biblioteca_by_id(id_biblioteca)
+            except ValueError:
+                print("Ingresaste un valor no númerico")
         elif opcion == "3":
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
@@ -1784,6 +1786,7 @@ def main():
             |9. TABLA BIBLIOTECA                     |
             |----------------------------------------|
             |10. TABLA MATERIALEXCLUSIVO             |
+            |----------------------------------------|
             |0. SALIR                                |  
             |----------------------------------------|                                                        
             ==========================================
