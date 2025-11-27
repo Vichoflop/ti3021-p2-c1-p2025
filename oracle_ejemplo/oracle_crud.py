@@ -38,7 +38,7 @@ def create_all_tables():
             "id_estudiante INTEGER PRIMARY KEY,"
             "id_usuario INTEGER,"
             "PrestamosActivos INTEGER NOT NULL,"
-            "EstadoDeuda VARCHAR2(50) NOT NULL,"
+            "Estado VARCHAR2(100) NOT NULL,"
             "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
             ")"
         ),
@@ -46,24 +46,27 @@ def create_all_tables():
             "CREATE TABLE Docentes ("
             "id_docente INTEGER PRIMARY KEY,"
             "id_usuario INTEGER,"
-            "MaterialExclusivoAccedido VARCHAR2(50) NOT NULL,"
-            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
+            "id_material_exclusivo  INTEGER,"
+            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),"
+            "FOREIGN KEY (id_material_exclusivo) REFERENCES Usuarios(id_material_exclusivo)"
             ")"
         ),
         (
             "CREATE TABLE Investigadores ("
             "id_investigador INTEGER PRIMARY KEY,"
             "id_usuario INTEGER,"
-            "NivelAcceso VARCHAR2(50) NOT NULL"
-            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
+            "id_Data_Set_Descargado  INTEGER,"
+            "NivelAcceso VARCHAR2(100) NOT NULL,"
+            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),"
+            "FOREIGN KEY (id_Data_Set_Descargado) REFERENCES Usuarios(id_Data_Set_Descargado),"
             ")"
         ),
         (
             "CREATE TABLE Libros ("
             "id_libro INTEGER PRIMARY KEY,"
             "id_estudiante INTEGER,"
-            "nombre VARCHAR2(50),"
-            "autor VARCHAR2(50),"
+            "nombre VARCHAR2(100),"
+            "autor VARCHAR2(100),"
             "anio_publicacion NUMBER(4),"
             "CantidadPaginas INTEGER,"
             "Cantidad INTEGER,"
@@ -87,7 +90,7 @@ def create_all_tables():
             "CREATE TABLE DataSetsDescargados ("
             "id_Data_Set_Descargado INTEGER PRIMARY KEY,"
             "id_investigador INTEGER NOT NULL,"
-            "Nombre VARCHAR2(50) NOT NULL,"
+            "Nombre VARCHAR2(100) NOT NULL,"
             "Cantidad INTEGER NOT NULL,"
             "FOREIGN KEY (id_investigador) REFERENCES Investigadores(id_investigador)"
             ")"
@@ -97,7 +100,7 @@ def create_all_tables():
             "id_material_exclusivo  INTEGER PRIMARY KEY,"
             "id_docente             INTEGER NOT NULL,"
             "nombre                 VARCHAR2(150) NOT NULL,"
-            "descripcion            VARCHAR2(300) NOT NULL,"
+            "Descripcion            VARCHAR2(300) NOT NULL,"
             "FOREIGN KEY (id_docente) REFERENCES Docentes(id_docente)"
             ")"
         ),
@@ -142,18 +145,20 @@ def create_Usuarios(
 def create_Estudiantes(
         id_estudiante: int,
         id_usuario: int,
+        id_material_exclusivo: int,
         PrestamosActivos: int,
-        EstadoDeuda: str
+        Estado: str
 ):
     sql = (
-        "INSERT INTO Estudiantes (id_estudiante, id_usuario, PrestamosActivos, EstadoDeuda) "
-        "VALUES (:id_estudiante, :id_usuario, :PrestamosActivos, :EstadoDeuda)"
+        "INSERT INTO Estudiantes (id_estudiante, id_usuario,id_material_exclusivo, PrestamosActivos, Estado) "
+        "VALUES (:id_estudiante, :id_usuario,:id_material_exclusivo, :PrestamosActivos, :Estado)"
     )
     parametros = {
         "id_estudiante": id_estudiante,
         "id_usuario": id_usuario,
+        "id_material_exclusivo": id_material_exclusivo,
         "PrestamosActivos": PrestamosActivos,
-        "EstadoDeuda": EstadoDeuda
+        "Estado": Estado
     }
     try:
         with get_connection() as conn:
@@ -195,15 +200,17 @@ def create_Docentes(
 def create_Investigadores(
         id_investigador: int,
         id_usuario: int,
+        id_Data_Set_Descargado: int,
         NivelAcceso: str
 ):
     sql = (
-        "INSERT INTO Investigadores (id_investigador,id_usuario, NivelAcceso) "
-        "VALUES (:id_investigador, :id_usuario, :NivelAcceso)"
+        "INSERT INTO Investigadores (id_investigador,id_usuario, id_Data_Set_Descargado, NivelAcceso) "
+        "VALUES (:id_investigador, :id_usuario,:id_Data_Set_Descargado, :NivelAcceso)"
     )
     parametros = {
         "id_investigador": id_investigador,
         "id_usuario": id_usuario,
+        "id_Data_Set_Descargado": id_Data_Set_Descargado,
         "NivelAcceso": NivelAcceso
     }
     try:
@@ -313,17 +320,17 @@ def create_MaterialExclusivo(
         id_material_exclusivo: int,
         id_docente: int,
         nombre: str,
-        descripcion: str
+        Descripcion: str
 ):
     sql = (
-        "INSERT INTO MaterialExclusivo (id_material_exclusivo, id_docente, nombre, descripcion) "
-        "VALUES (:id_material_exclusivo, :id_docente, :nombre, :descripcion)"
+        "INSERT INTO MaterialExclusivo (id_material_exclusivo, id_docente, nombre, Descripcion) "
+        "VALUES (:id_material_exclusivo, :id_docente, :nombre, :Descripcion)"
     )
     parametros = {
         "id_material_exclusivo": id_material_exclusivo,
         "id_docente": id_docente,
         "nombre": nombre,
-        "descripcion": descripcion
+        "Descripcion": Descripcion
     }
     try:
         with get_connection() as conn:
@@ -697,15 +704,15 @@ def update_Usuarios(id_usuario, nombre: Optional[str] = None, apellido: Optional
         print(f"Usuario con ID={id_usuario} actualizado.") 
 
 
-def update_Estudiantes(id_estudiante,PrestamosActivos: Optional[int] = None,EstadoDeuda: Optional[str] = None):
+def update_Estudiantes(id_estudiante,PrestamosActivos: Optional[int] = None,Estado: Optional[str] = None):
     modificaciones = []     
     parametros = {"id": id_estudiante}
     if PrestamosActivos is not None:         
         modificaciones.append("PrestamosActivos =: PrestamosActivos")         
         parametros["PrestamosActivos"] = PrestamosActivos
-    if EstadoDeuda is not None:         
-        modificaciones.append("EstadoDeuda =: EstadoDeuda")         
-        parametros["EstadoDeuda"] = EstadoDeuda
+    if Estado is not None:         
+        modificaciones.append("Estado =: Estado")         
+        parametros["Estado"] = Estado
     if not modificaciones:         
         print("No hay campos para actualizar.")         
         return
@@ -847,15 +854,15 @@ def update_DataSetsDescargados(id_Data_Set_Descargado: int,Nombre: Optional[str]
         conn.commit()
         print(f"DataSetDescargado con ID={id_Data_Set_Descargado} actualizado.")
 
-def update_MaterialExclusivo(id_material_exclusivo: int,nombre: Optional[str] = None,descripcion: Optional[str] = None):
+def update_MaterialExclusivo(id_material_exclusivo: int,nombre: Optional[str] = None,Descripcion: Optional[str] = None):
     modificaciones = []     
     parametros = {"id": id_material_exclusivo}
     if nombre is not None:         
         modificaciones.append("nombre =: nombre")         
         parametros["nombre"] = nombre
-    if descripcion is not None:         
-        modificaciones.append("descripcion =: descripcion")         
-        parametros["descripcion"] = descripcion
+    if Descripcion is not None:         
+        modificaciones.append("Descripcion =: Descripcion")         
+        parametros["Descripcion"] = Descripcion
     if not modificaciones:         
         print("No hay campos para actualizar.")         
         return
@@ -1163,14 +1170,16 @@ def menu_Estudiantes():
         elif opcion == "1":
             try:
                 id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
+                id_usuario = int(input("Ingrese el id numerico del usuario: "))
+                id_material_exclusivo = int(input("Ingrese el id numerico del Material Exclusivo: "))
                 prestamos_activos = int(input("Ingrese la cantidad de prestamos activos del Estudiante: "))
                 opciones_validas = ["pendiente", "devuelto", "retrasado"]
-                estado_deuda = input("Ingrese el estado de deuda del Estudiante (pendiente-devuelto-retrasado): ")
-                while estado_deuda not in opciones_validas:
+                Estado = input("Ingrese el Estado de deuda del Estudiante (pendiente-devuelto-retrasado): ")
+                while Estado not in opciones_validas:
                     print("❌ Opción no válida. Debe ingresar: pendiente, devuelto o retrasado.")
-                    estado_deuda = input("Ingrese nuevamente el estado de deuda: ").strip().lower()
-                print("✔️ Estado de deuda registrado correctamente:", estado_deuda)
-                create_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)
+                    Estado = input("Ingrese nuevamente el Estado de deuda: ").strip().lower()
+                print("✔️ Estado de deuda registrado correctamente:", Estado)
+                create_Estudiantes(id_estudiante,id_usuario,id_material_exclusivo,  prestamos_activos,Estado)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1184,13 +1193,9 @@ def menu_Estudiantes():
                 id_estudiante = int(input("Ingrese el id numerico del Estudiante: "))
                 read_Estudiantes_by_id(id_estudiante)
                 print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                prestamos_activos_input = input("Nueva cantidad de prestamos activos: ").strip()
-                prestamos_activos = int(prestamos_activos_input) if prestamos_activos_input else None
-                estado_deuda = input("Nuevo estado de deuda (pendiente-devuelto-retrasado): ").strip().lower()
-                if estado_deuda and estado_deuda not in ["pendiente", "devuelto", "retrasado"]:
-                    print("❌ Opción no válida. Debe ingresar: pendiente, devuelto o retrasado.")
-                    estado_deuda = None
-                update_Estudiantes(id_estudiante,prestamos_activos,estado_deuda)               
+                prestamos_activos = input("Nueva cantidad de prestamos activos: ").strip()
+                Estado = input("Nuevo Estado de deuda (pendiente-devuelto-retrasado): ").strip().lower()
+                update_Estudiantes(id_estudiante,prestamos_activos,Estado)               
             except ValueError:
                 print("Ingresaste un valor no númerico")
             
@@ -1243,45 +1248,37 @@ def menu_Docentes():
         elif opcion == "1":
             try:
                 id_docente = int(input("Ingrese el id numerico del Docente: "))
-                material_exclusivo_accedido = input("Ingrese el material exclusivo accedido del Docente: ")
-                create_Docentes(id_docente,material_exclusivo_accedido)
+                id_usuario = int(input("Ingrese el id numerico del usuario: "))
+                id_material_exclusivo = int(input("Ingrese el id numerico del material exclusivo: "))
+                create_Docentes(id_docente, id_usuario,id_material_exclusivo )
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
         elif opcion == "2":
             id_docente = int(input("Ingrese el id numerico del Docente: "))
-            read_Docentes_by_id(id_docente)
+            id_usuario = int(input("Ingrese el id numerico del usuario: "))
+            id_material_exclusivo = int(input("Ingrese el id numerico del material exclusivo: "))
+            read_Docentes_by_id(id_docente,id_usuario,id_material_exclusivo  )
             input("Presiona ENTER para continuar...")
         elif opcion == "3":
             try:
                 id_docente = int(input("Ingrese el id numerico del Docente: "))
-                read_Docentes_by_id(id_docente)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        elif opcion == "4":
-            try:
-                id_docente = int(input("Ingrese el id numerico del Docente: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
-                material_exclusivo_accedido = input("Ingrese el material exclusivo accedido del Docente: ")
-                if len(material_exclusivo_accedido.strip()) == 0:
-                    material_exclusivo_accedido = None
-                update_Docentes(id_docente,material_exclusivo_accedido)
+                id_usuario = int(input("Ingrese el id numerico del usuario: "))
+                id_material_exclusivo = int(input("Ingrese el id numerico del material exclusivo: "))
+                update_Docentes(id_docente, id_usuario,id_material_exclusivo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4":
             try:
                 id_docente = int(input("Ingrese el id numerico del docente: "))
                 delete_Docente(id_docente)
             except ValueError:
                 print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        else:
+        elif opcion == "5":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
@@ -1320,8 +1317,10 @@ def menu_Investigadores():
         elif opcion == "1":
             try:
                 id_investigador = int(input("Ingrese el id numerico del Investigador: "))
-                nivel_acceso = input("Ingrese el nivel de acceso del Investigador: ")
-                create_Investigadores(id_investigador,nivel_acceso)
+                id_usuario = int(input("Ingrese el id numerico del usuario: "))
+                id_Data_Set_Descargado = int(input("Ingrese el id numerico del Data Set Descargado: "))
+                NivelAcceso = input("Ingrese el nivel de acceso del Investigador: ")
+                create_Investigadores(id_investigador, id_usuario,id_Data_Set_Descargado, NivelAcceso)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1334,10 +1333,12 @@ def menu_Investigadores():
             try:
                 id_investigador = int(input("Ingrese el id numerico del Investigador: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
-                nivel_acceso = input("Ingrese el nivel de acceso del Investigador: ")
-                if len(nivel_acceso.strip()) == 0:
-                    nivel_acceso = None
-                update_Investigadores(id_investigador,nivel_acceso)
+                id_usuario = int(input("Ingrese el id numerico del usuario: "))
+                id_Data_Set_Descargado = int(input("Ingrese el id numerico del Data Set Descargado: "))
+                NivelAcceso = input("Ingrese el nivel de acceso del Investigador: ")
+                if len(NivelAcceso.strip()) == 0:
+                    NivelAcceso = None
+                update_Investigadores(id_investigador,id_usuario,id_Data_Set_Descargado, NivelAcceso)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1389,13 +1390,14 @@ def menu_Libros():
         elif opcion == "1":
             try:
                 id_libro = int(input("Ingrese el id numerico del Libro: "))
+                id_prestamo = int(input("Ingrese el id numerico del prestamo: "))
                 nombre = input("Ingrese el nombre del Libro: ")
                 autor = input("Ingrese el autor del Libro: ")
                 anio_publicacion = int(input("Ingrese el año de publicación del Libro: "))
-                cantidad_paginas = int(input("Ingrese la cantidad de páginas del Libro: "))
+                CantidadPaginas = int(input("Ingrese la cantidad de páginas del Libro: "))
                 cantidad = int(input("Ingrese la cantidad del Libro: "))
-                descripcion = input("Ingrese la descripción del Libro: ")
-                create_Libros(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
+                Descripcion = input("Ingrese la descripción del Libro: ")
+                create_Libros(id_libro,id_prestamo,nombre,autor,anio_publicacion,CantidadPaginas,cantidad,Descripcion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1407,26 +1409,27 @@ def menu_Libros():
         elif opcion == "3":
             try:
                 id_libro = int(input("Ingrese el id numerico del Libro: "))
+                id_prestamo = int(input("Ingrese el id numerico del prestamo: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 nombre = input("Ingrese el nombre del Libro: ")
                 autor = input("Ingrese el autor del Libro: ")
                 anio_publicacion = input("Ingrese el año de publicación del Libro: ")
-                cantidad_paginas = input("Ingrese la cantidad de páginas del Libro: ")
+                CantidadPaginas = input("Ingrese la cantidad de páginas del Libro: ")
                 cantidad = input("Ingrese la cantidad del Libro: ")
-                descripcion = input("Ingrese la descripción del Libro: ")
+                Descripcion = input("Ingrese la descripción del Libro: ")
                 if len(nombre.strip()) == 0:
                     nombre = None
                 if len(autor.strip()) == 0:
                     autor = None
                 if len(anio_publicacion.strip()) == 0:
                     anio_publicacion = None
-                if len(cantidad_paginas.strip()) == 0:
-                    cantidad_paginas = None
+                if len(CantidadPaginas.strip()) == 0:
+                    CantidadPaginas = None
                 if len(cantidad.strip()) == 0:
                     cantidad = None
-                if len(descripcion.strip()) == 0:
-                    descripcion = None
-                update_Libros(id_libro,nombre,autor,anio_publicacion,cantidad_paginas,cantidad,descripcion)
+                if len(Descripcion.strip()) == 0:
+                    Descripcion = None
+                update_Libros(id_libro,nombre,autor,anio_publicacion,CantidadPaginas,cantidad,Descripcion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1478,10 +1481,12 @@ def menu_Prestamos():
         elif opcion == "1":
             try:
                 id_prestamo = int(input("Ingrese el id numerico del Prestamo: "))
+                id_estudiante = int(input("Ingrese el id numerico del estudiante: "))
+                id_libro = int(input("Ingrese el id numerico del libro: "))
                 cantidad = int(input("Ingrese la cantidad del Prestamo: "))
                 fecha_prestamo = input("Ingrese la fecha de prestamo del Prestamo (YYYY-MM-DD): ")
                 fecha_devolucion = input("Ingrese la fecha de devolucion del Prestamo (YYYY-MM-DD): ")
-                create_Prestamos(id_prestamo,cantidad,fecha_prestamo,fecha_devolucion)
+                create_Prestamos(id_prestamo,id_estudiante,id_libro,cantidad,fecha_prestamo,fecha_devolucion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1558,9 +1563,10 @@ def menu_DataSetsDescargados():
         elif opcion == "1":
             try:
                 id_Data_Set_Descargado = int(input("Ingrese el id numerico del DataSetDescargado: "))
+                id_investigador = int(input("Ingrese el id numerico del usuario: "))
                 Nombre = input("Ingrese el nombre del DataSetDescargado: ")
                 Cantidad = int(input("Ingrese la cantidad del DataSetDescargado: "))
-                create_DataSetsDescargados(id_Data_Set_Descargado,Nombre,Cantidad)
+                create_DataSetsDescargados(id_Data_Set_Descargado,id_investigador,Nombre,Cantidad)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1656,14 +1662,14 @@ def menu_MaterialExclusivo():
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
                 id_docente = input("Ingrese el id numerico del Docente asociado: ")
                 nombre = input("Ingrese el nombre del MaterialExclusivo: ")
-                descripcion = input("Ingrese la descripcion del MaterialExclusivo: ")
+                Descripcion = input("Ingrese la descripcion del MaterialExclusivo: ")
                 if len(id_docente.strip()) == 0:
                     id_docente = None
                 if len(nombre.strip()) == 0:
                     nombre = None
-                if len(descripcion.strip()) == 0:
-                    descripcion = None
-                update_MaterialExclusivo(id_material_exclusivo,id_docente,nombre,descripcion)
+                if len(Descripcion.strip()) == 0:
+                    Descripcion = None
+                update_MaterialExclusivo(id_material_exclusivo,id_docente,nombre,Descripcion)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1698,14 +1704,12 @@ def menu_Biblioteca():
             |----------------------------------------|
             |3. Modificar Biblioteca                 |
             |----------------------------------------|
-            |4. Eliminar Biblioteca                  |
-            |----------------------------------------|
             |0. Volver al Menu Principal             |  
             |----------------------------------------|                                                        
             ==========================================
             """
         )
-        opcion = input("Selecciona una opcion [1-4, 0 para volver al menu principal]: ")
+        opcion = input("Selecciona una opcion [1-3, 0 para volver al menu principal]: ")
 
         if opcion == "0":
             os.system("cls")
@@ -1715,9 +1719,9 @@ def menu_Biblioteca():
         elif opcion == "1":
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
-                nombre = input("Ingrese el nombre del Biblioteca: ")
-                ubicacion = input("Ingrese la ubicacion del Biblioteca: ")
-                create_Biblioteca(id_biblioteca,nombre,ubicacion)
+                CantidadMaterial = int(input("Ingrese la cantidad de material: "))
+                GestionPrestamo = (input("Ingrese la cantidad de prestamos: "))
+                create_Biblioteca(id_biblioteca,CantidadMaterial,GestionPrestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
@@ -1732,26 +1736,18 @@ def menu_Biblioteca():
             try:
                 id_biblioteca = int(input("Ingrese el id numerico del Biblioteca: "))
                 print("⚠️ Sólo digite cuándo quiera modificar el dato")
-                nombre = input("Ingrese el nombre del Biblioteca: ")
-                ubicacion = input("Ingrese la ubicacion del Biblioteca: ")
+                CantidadMaterial = int(input("Ingrese el nombre del Biblioteca: "))
+                GestionPrestamo = (input("Ingrese la ubicacion del Biblioteca: "))
                 if len(nombre.strip()) == 0:
                     nombre = None
                 if len(ubicacion.strip()) == 0:
                     ubicacion = None
-                update_Biblioteca(id_biblioteca,nombre,ubicacion)
+                update_Biblioteca(id_biblioteca,CantidadMaterial,GestionPrestamo)
             except ValueError:
                 print("Ingresaste un valor no númerico")
 
             input("Presiona ENTER para continuar...")
-        elif opcion == "4": 
-            try:
-                id_biblioteca = int(input("Ingrese el id numerico del biblioteca: "))
-                delete_Biblioteca(id_biblioteca)
-            except ValueError:
-                print("Ingresaste un valor no númerico")
-            
-            input("Presiona ENTER para continuar...")
-        elif opcion == "5":
+        elif opcion == "4":
             print("Opción invalida")
             input("Presiona ENTER para continuar...")
             break
