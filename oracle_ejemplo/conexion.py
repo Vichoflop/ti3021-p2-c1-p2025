@@ -4,9 +4,9 @@ from dotenv import load_dotenv
  
 load_dotenv()  
 
-username = os.getenv("prueba_poo") 
-dsn = os.getenv("localhost:1521/XEPDB1") 
-password = os.getenv("prueba_poo") 
+username = os.getenv("user") 
+dsn = os.getenv("host") 
+password = os.getenv("password") 
 
 
 
