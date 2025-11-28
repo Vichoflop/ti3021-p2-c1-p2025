@@ -1,31 +1,32 @@
 from typing import Optional
-import oracledb
-import os
 from dotenv import load_dotenv
 from datetime import datetime
+import oracledb
+import os
 
 load_dotenv()
 
-username= os.getenv("user")
-dsn = os.getenv("host")
-password = os.getenv("password")
+username = os.getenv("ORACLE_USER")
+dsn = os.getenv("ORACLE_DSN")
+password = os.getenv("ORACLE_PASSWORD")
 
 def get_connection():
-    return oracledb.connect(user = username, password = password, dsn = dsn)
+    return oracledb.connect(user=username, password=password, dsn=dsn)
 
 def create_schema(query):
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query)
-                print(f"{query}")
-            conn.commit()
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        err = e
-        print(f"No se pudo crear la tabla: {err} \n {query}")
+        # Ignorar error si la tabla no existe (ORA-00942)
+        if "ORA-00942" not in str(e):
+            print(f"Error en base de datos: {e}")
 
 def create_all_tables():
-
     tables = [
         (
             "CREATE TABLE Usuarios ("
@@ -48,7 +49,7 @@ def create_all_tables():
             "CREATE TABLE Docentes ("
             "id_docente INTEGER PRIMARY KEY,"
             "id_usuario INTEGER,"
-            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),"
+            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
             ")"
         ),
         (
@@ -56,7 +57,7 @@ def create_all_tables():
             "id_investigador INTEGER PRIMARY KEY,"
             "id_usuario INTEGER,"
             "NivelAcceso VARCHAR2(100) NOT NULL,"
-            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),"
+            "FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)"
             ")"
         ),
         (
@@ -113,9 +114,7 @@ def create_all_tables():
     for query in tables:
         create_schema(query)
 
-
 def drop_all_tables():
-    # Orden inverso a las dependencias
     drop_order = [
         "Prestamos",
         "Libros",
@@ -127,9 +126,18 @@ def drop_all_tables():
         "Biblioteca",
         "Usuarios"
     ]
-    drops = [f"DROP TABLE {table} CASCADE CONSTRAINTS" for table in drop_order]
-    for query in drops:
-        create_schema(query)
+    for table in drop_order:
+        try:
+            connection = get_connection()
+            cursor = connection.cursor()
+            cursor.execute(f"DROP TABLE {table} CASCADE CONSTRAINTS")
+            connection.commit()
+            cursor.close()
+            connection.close()
+        except oracledb.DatabaseError as e:
+            # Ignorar si la tabla no existe
+            if "ORA-00942" not in str(e):
+                print(f"Error al eliminar {table}: {e}")
 
 def create_Usuarios(
         id_usuario: int,
@@ -148,14 +156,14 @@ def create_Usuarios(
         "correo": correo
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Usuarios")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Estudiantes(
         id_estudiante: int,
@@ -174,14 +182,14 @@ def create_Estudiantes(
         "Estado": Estado
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Estudiantes")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Docentes(
         id_docente: int,
@@ -196,14 +204,14 @@ def create_Docentes(
         "id_usuario": id_usuario
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Docentes")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Investigadores(
         id_investigador: int,
@@ -220,14 +228,14 @@ def create_Investigadores(
         "NivelAcceso": NivelAcceso
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Investigadores")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Libros(
         id_libro: int,
@@ -254,14 +262,14 @@ def create_Libros(
         "Descripcion": Descripcion
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Libros")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Prestamos(
         id_prestamo: int,
@@ -284,14 +292,14 @@ def create_Prestamos(
         "fecha_devolucion": fecha_devolucion
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Prestamos")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_DataSetsDescargados(
         id_Data_Set_Descargado: int,
@@ -310,14 +318,14 @@ def create_DataSetsDescargados(
         "Cantidad": Cantidad
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla DataSetsDescargados")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_MaterialExclusivo(
         id_material_exclusivo: int,
@@ -336,14 +344,14 @@ def create_MaterialExclusivo(
         "Descripcion": Descripcion
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla MaterialExclusivo")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def create_Biblioteca(
         id_biblioteca: int,
@@ -360,1003 +368,1745 @@ def create_Biblioteca(
         "GestionPrestamo": GestionPrestamo
     }
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print("Datos insertados en la tabla Biblioteca")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
     except oracledb.DatabaseError as e:
-        print(f"Error al insertar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def read_Usuarios():
     sql = "SELECT * FROM Usuarios"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Usuarios")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Usuarios_by_id(id_usuario):
     sql = "SELECT * FROM Usuarios WHERE id_usuario = :id_usuario"
-    parametros = {"id_usuario": id_usuario}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Usuarios por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_usuario": id_usuario})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Estudiantes():
     sql = "SELECT * FROM Estudiantes"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Estudiantes")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Estudiantes_by_id(id_estudiante):
     sql = "SELECT * FROM Estudiantes WHERE id_estudiante = :id_estudiante"
-    parametros = {"id_estudiante": id_estudiante}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Estudiantes por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_estudiante": id_estudiante})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Docentes():
     sql = "SELECT * FROM Docentes"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Docentes")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Docentes_by_id(id_docente):
     sql = "SELECT * FROM Docentes WHERE id_docente = :id_docente"
-    parametros = {"id_docente": id_docente}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Docentes por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_docente": id_docente})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Investigadores():
     sql = "SELECT * FROM Investigadores"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Investigadores")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Investigadores_by_id(id_investigador):
     sql = "SELECT * FROM Investigadores WHERE id_investigador = :id_investigador"
-    parametros = {"id_investigador": id_investigador}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Investigadores por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_investigador": id_investigador})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Libros():
     sql = "SELECT * FROM Libros"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Libros")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Libros_by_id(id_libro):
     sql = "SELECT * FROM Libros WHERE id_libro = :id_libro"
-    parametros = {"id_libro": id_libro}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Libros por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_libro": id_libro})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Prestamos():
     sql = "SELECT * FROM Prestamos"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Prestamos")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Prestamos_by_id(id_prestamo):
-    sql = "SELECT * FROM Prestamos WHERE id_prestamo = :id_prestamo"
-    parametros = {"id_prestamo": id_prestamo}
+    sql = "SELECT * FROM Prestamos WHERE Id_prestamo = :id_prestamo"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Prestamos por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_prestamo": id_prestamo})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_DataSetsDescargados():
     sql = "SELECT * FROM DataSetsDescargados"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla DataSetsDescargados")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_DataSetsDescargados_by_id(id_Data_Set_Descargado):
     sql = "SELECT * FROM DataSetsDescargados WHERE id_Data_Set_Descargado = :id_Data_Set_Descargado"
-    parametros = {"id_Data_Set_Descargado": id_Data_Set_Descargado}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla DataSetsDescargados por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_Data_Set_Descargado": id_Data_Set_Descargado})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_MaterialExclusivo():
     sql = "SELECT * FROM MaterialExclusivo"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla MaterialExclusivo")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_MaterialExclusivo_by_id(id_material_exclusivo):
     sql = "SELECT * FROM MaterialExclusivo WHERE id_material_exclusivo = :id_material_exclusivo"
-    parametros = {"id_material_exclusivo": id_material_exclusivo}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla MaterialExclusivo por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_material_exclusivo": id_material_exclusivo})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return None
 
 def read_Biblioteca():
     sql = "SELECT * FROM Biblioteca"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Biblioteca")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return resultados
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
+        return []
 
 def read_Biblioteca_by_id(id_biblioteca):
     sql = "SELECT * FROM Biblioteca WHERE id_biblioteca = :id_biblioteca"
-    parametros = {"id_biblioteca": id_biblioteca}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-                resultados = cur.fetchall()
-                print("Consulta a la tabla Biblioteca por ID")
-                for row in resultados:
-                    print(row)
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_biblioteca": id_biblioteca})
+        resultado = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        return resultado
     except oracledb.DatabaseError as e:
-        print(f"Error al consultar datos: {e}")
-
-
-from typing import Optional
-from datetime import datetime
+        print(f"Error en base de datos: {e}")
+        return None
 
 def update_Usuarios(id_usuario: int, nombre: Optional[str] = None, apellido: Optional[str] = None, correo: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_usuario": id_usuario}
+    
     if nombre is not None:
-        modificaciones.append("nombre = :nombre")
+        updates.append("nombre = :nombre")
         parametros["nombre"] = nombre
     if apellido is not None:
-        modificaciones.append("apellido = :apellido")
+        updates.append("apellido = :apellido")
         parametros["apellido"] = apellido
     if correo is not None:
-        modificaciones.append("correo = :correo")
+        updates.append("correo = :correo")
         parametros["correo"] = correo
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Usuarios SET " + ", ".join(modificaciones) + " WHERE id_usuario = :id_usuario"
-
+    
+    sql = f"UPDATE Usuarios SET {', '.join(updates)} WHERE id_usuario = :id_usuario"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Usuario con ID={id_usuario} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Usuario actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_Estudiantes(id_estudiante: int, PrestamosActivos: Optional[int] = None, Estado: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_estudiante": id_estudiante}
+    
     if PrestamosActivos is not None:
-        modificaciones.append("PrestamosActivos = :PrestamosActivos")
+        updates.append("PrestamosActivos = :PrestamosActivos")
         parametros["PrestamosActivos"] = PrestamosActivos
     if Estado is not None:
-        modificaciones.append("Estado = :Estado")
+        updates.append("Estado = :Estado")
         parametros["Estado"] = Estado
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Estudiantes SET " + ", ".join(modificaciones) + " WHERE id_estudiante = :id_estudiante"
-
+    
+    sql = f"UPDATE Estudiantes SET {', '.join(updates)} WHERE id_estudiante = :id_estudiante"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Estudiante con ID={id_estudiante} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Estudiante actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
-
+        print(f"Error en base de datos: {e}")
 
 def update_Docentes(id_docente: int, id_usuario: Optional[int] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_docente": id_docente}
-
+    
     if id_usuario is not None:
-        modificaciones.append("id_usuario = :id_usuario")
+        updates.append("id_usuario = :id_usuario")
         parametros["id_usuario"] = id_usuario
-
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Docentes SET " + ", ".join(modificaciones) + " WHERE id_docente = :id_docente"
-
+    
+    sql = f"UPDATE Docentes SET {', '.join(updates)} WHERE id_docente = :id_docente"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Docente con ID={id_docente} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Docente actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_Investigadores(id_investigador: int, NivelAcceso: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_investigador": id_investigador}
+    
     if NivelAcceso is not None:
-        modificaciones.append("NivelAcceso = :NivelAcceso")
+        updates.append("NivelAcceso = :NivelAcceso")
         parametros["NivelAcceso"] = NivelAcceso
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Investigadores SET " + ", ".join(modificaciones) + " WHERE id_investigador = :id_investigador"
-
+    
+    sql = f"UPDATE Investigadores SET {', '.join(updates)} WHERE id_investigador = :id_investigador"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Investigador con ID={id_investigador} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Investigador actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_Libros(id_libro: int, nombre: Optional[str] = None, autor: Optional[str] = None,
                   anio_publicacion: Optional[int] = None, CantidadPaginas: Optional[int] = None,
                   Cantidad: Optional[int] = None, Descripcion: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_libro": id_libro}
+    
     if nombre is not None:
-        modificaciones.append("nombre = :nombre")
+        updates.append("nombre = :nombre")
         parametros["nombre"] = nombre
     if autor is not None:
-        modificaciones.append("autor = :autor")
+        updates.append("autor = :autor")
         parametros["autor"] = autor
     if anio_publicacion is not None:
-        modificaciones.append("anio_publicacion = :anio_publicacion")
+        updates.append("anio_publicacion = :anio_publicacion")
         parametros["anio_publicacion"] = anio_publicacion
     if CantidadPaginas is not None:
-        modificaciones.append("CantidadPaginas = :CantidadPaginas")
+        updates.append("CantidadPaginas = :CantidadPaginas")
         parametros["CantidadPaginas"] = CantidadPaginas
     if Cantidad is not None:
-        modificaciones.append("Cantidad = :Cantidad")
+        updates.append("Cantidad = :Cantidad")
         parametros["Cantidad"] = Cantidad
     if Descripcion is not None:
-        modificaciones.append("Descripcion = :Descripcion")
+        updates.append("Descripcion = :Descripcion")
         parametros["Descripcion"] = Descripcion
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Libros SET " + ", ".join(modificaciones) + " WHERE id_libro = :id_libro"
-
+    
+    sql = f"UPDATE Libros SET {', '.join(updates)} WHERE id_libro = :id_libro"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Libro con ID={id_libro} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Libro actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_Prestamos(id_prestamo: int, cantidad: Optional[int] = None,
                      fecha_prestamo: Optional[str] = None, fecha_devolucion: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_prestamo": id_prestamo}
+    
     if cantidad is not None:
-        modificaciones.append("cantidad = :cantidad")
+        updates.append("cantidad = :cantidad")
         parametros["cantidad"] = cantidad
     if fecha_prestamo is not None:
-        modificaciones.append("fecha_prestamo = :fecha_prestamo")
-        parametros["fecha_prestamo"] = datetime.strptime(fecha_prestamo, "%Y-%m-%d")
+        updates.append("fecha_prestamo = :fecha_prestamo")
+        parametros["fecha_prestamo"] = fecha_prestamo
     if fecha_devolucion is not None:
-        modificaciones.append("fecha_devolucion = :fecha_devolucion")
-        parametros["fecha_devolucion"] = datetime.strptime(fecha_devolucion, "%Y-%m-%d")
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+        updates.append("fecha_devolucion = :fecha_devolucion")
+        parametros["fecha_devolucion"] = fecha_devolucion
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Prestamos SET " + ", ".join(modificaciones) + " WHERE id_prestamo = :id_prestamo"
-
+    
+    sql = f"UPDATE Prestamos SET {', '.join(updates)} WHERE Id_prestamo = :id_prestamo"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Préstamo con ID={id_prestamo} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Préstamo actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_DataSetsDescargados(id_Data_Set_Descargado: int, Nombre: Optional[str] = None, Cantidad: Optional[int] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_Data_Set_Descargado": id_Data_Set_Descargado}
+    
     if Nombre is not None:
-        modificaciones.append("Nombre = :Nombre")
+        updates.append("Nombre = :Nombre")
         parametros["Nombre"] = Nombre
     if Cantidad is not None:
-        modificaciones.append("Cantidad = :Cantidad")
+        updates.append("Cantidad = :Cantidad")
         parametros["Cantidad"] = Cantidad
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE DataSetsDescargados SET " + ", ".join(modificaciones) + " WHERE id_Data_Set_Descargado = :id_Data_Set_Descargado"
-
+    
+    sql = f"UPDATE DataSetsDescargados SET {', '.join(updates)} WHERE id_Data_Set_Descargado = :id_Data_Set_Descargado"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"DataSetDescargado con ID={id_Data_Set_Descargado} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Dataset actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def update_MaterialExclusivo(id_material_exclusivo: int, nombre: Optional[str] = None, Descripcion: Optional[str] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_material_exclusivo": id_material_exclusivo}
+    
     if nombre is not None:
-        modificaciones.append("nombre = :nombre")
+        updates.append("nombre = :nombre")
         parametros["nombre"] = nombre
     if Descripcion is not None:
-        modificaciones.append("Descripcion = :Descripcion")
+        updates.append("Descripcion = :Descripcion")
         parametros["Descripcion"] = Descripcion
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE MaterialExclusivo SET " + ", ".join(modificaciones) + " WHERE id_material_exclusivo = :id_material_exclusivo"
-
+    
+    sql = f"UPDATE MaterialExclusivo SET {', '.join(updates)} WHERE id_material_exclusivo = :id_material_exclusivo"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"MaterialExclusivo con ID={id_material_exclusivo} actualizado.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Material Exclusivo actualizado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-              
+        print(f"Error en base de datos: {e}")
+
 def update_Biblioteca(id_biblioteca: int, CantidadMaterial: Optional[int] = None, GestionPrestamo: Optional[int] = None):
-    modificaciones = []
+    updates = []
     parametros = {"id_biblioteca": id_biblioteca}
+    
     if CantidadMaterial is not None:
-        modificaciones.append("CantidadMaterial = :CantidadMaterial")
+        updates.append("CantidadMaterial = :CantidadMaterial")
         parametros["CantidadMaterial"] = CantidadMaterial
     if GestionPrestamo is not None:
-        modificaciones.append("GestionPrestamo = :GestionPrestamo")
+        updates.append("GestionPrestamo = :GestionPrestamo")
         parametros["GestionPrestamo"] = GestionPrestamo
-    if not modificaciones:
-        print("No hay campos para actualizar.")
+    
+    if not updates:
+        print("❌ No hay campos para actualizar")
         return
-
-    sql = "UPDATE Biblioteca SET " + ", ".join(modificaciones) + " WHERE id_biblioteca = :id_biblioteca"
-
+    
+    sql = f"UPDATE Biblioteca SET {', '.join(updates)} WHERE id_biblioteca = :id_biblioteca"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Biblioteca con ID={id_biblioteca} actualizada.")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, parametros)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Biblioteca actualizada correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al actualizar datos: {e}")
-
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Usuario(id_usuario: int):
     sql = "DELETE FROM Usuarios WHERE id_usuario = :id_usuario"
-    parametros = {"id_usuario": id_usuario}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Usuario eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_usuario": id_usuario})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Usuario eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Usuario: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Estudiante(id_estudiante: int):
     sql = "DELETE FROM Estudiantes WHERE id_estudiante = :id_estudiante"
-    parametros = {"id_estudiante": id_estudiante}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Estudiante eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_estudiante": id_estudiante})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Estudiante eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Estudiante: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Docente(id_docente: int):
     sql = "DELETE FROM Docentes WHERE id_docente = :id_docente"
-    parametros = {"id_docente": id_docente}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Docente eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_docente": id_docente})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Docente eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Docente: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Investigador(id_investigador: int):
     sql = "DELETE FROM Investigadores WHERE id_investigador = :id_investigador"
-    parametros = {"id_investigador": id_investigador}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Investigador eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_investigador": id_investigador})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Investigador eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Investigador: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Libro(id_libro: int):
     sql = "DELETE FROM Libros WHERE id_libro = :id_libro"
-    parametros = {"id_libro": id_libro}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Libro eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_libro": id_libro})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Libro eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Libro: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Prestamo(id_prestamo: int):
-    sql = "DELETE FROM Prestamos WHERE id_prestamo = :id_prestamo"
-    parametros = {"id_prestamo": id_prestamo}
+    sql = "DELETE FROM Prestamos WHERE Id_prestamo = :id_prestamo"
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Préstamo eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_prestamo": id_prestamo})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Préstamo eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Préstamo: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Data_Set_Descargado(id_Data_Set_Descargado: int):
     sql = "DELETE FROM DataSetsDescargados WHERE id_Data_Set_Descargado = :id_Data_Set_Descargado"
-    parametros = {"id_Data_Set_Descargado": id_Data_Set_Descargado}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"DataSetDescargado eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_Data_Set_Descargado": id_Data_Set_Descargado})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Dataset eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar DataSetDescargado: {e}")
-
+        print(f"Error en base de datos: {e}")
 
 def delete_Material_Exclusivo(id_material_exclusivo: int):
     sql = "DELETE FROM MaterialExclusivo WHERE id_material_exclusivo = :id_material_exclusivo"
-    parametros = {"id_material_exclusivo": id_material_exclusivo}
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"MaterialExclusivo eliminado: {parametros}")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(sql, {"id_material_exclusivo": id_material_exclusivo})
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("✔️ Material Exclusivo eliminado correctamente")
     except oracledb.DatabaseError as e:
-        print(f"Error al eliminar MaterialExclusivo: {e}")
-
-
-def delete_Biblioteca(id_biblioteca: int):
-    sql = "DELETE FROM Biblioteca WHERE id_biblioteca = :id_biblioteca"
-    parametros = {"id_biblioteca": id_biblioteca}
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, parametros)
-            conn.commit()
-            print(f"Biblioteca eliminada: {parametros}")
-    except oracledb.DatabaseError as e:
-        print(f"Error al eliminar Biblioteca: {e}")
-
-import os
+        print(f"Error en base de datos: {e}")
 
 def menu_Usuarios():
     while True:
-        os.system("cls")  # En Linux/Mac usar "clear"
-        print("""
-            ==========================================
-            |          Menu Usuarios                 |
-            ==========================================
-            | 1. Insertar Usuario                    |
-            |----------------------------------------|
-            | 2. Leer Usuario por Id                 |
-            |----------------------------------------|
-            | 3. Modificar Usuario                   |
-            |----------------------------------------|
-            | 4. Eliminar Usuario                    |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE USUARIOS")
+        print("="*50)
+        print("1. Crear Usuario")
+        print("2. Ver todos los Usuarios")
+        print("3. Ver Usuario por ID")
+        print("4. Actualizar Usuario")
+        print("5. Eliminar Usuario")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                nombre = input("Ingrese el nombre del Usuario: ").strip()
-                apellido = input("Ingrese el apellido del Usuario: ").strip()
-                if nombre and apellido:
-                    correo = f"{nombre.lower()}.{apellido.lower()}@correo.cl"
-                    print(f"📧 Nuevo correo generado: {correo}")
-                else:
-                    correo = None
+                id_usuario = int(input("ID Usuario: "))
+                nombre = input("Nombre: ")
+                apellido = input("Apellido: ")
+                correo = input("Correo: ")
                 create_Usuarios(id_usuario, nombre, apellido, correo)
+                print("✔️ Usuario creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+            except Exception as e:
+                print(f"❌ Error: {e}")
+        
         elif opcion == "2":
-            try:
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                read_Usuarios_by_id(id_usuario)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            usuarios = read_Usuarios()
+            if usuarios:
+                print("\n" + "-"*50)
+                print(f"{'ID':<10} {'Nombre':<15} {'Apellido':<15} {'Correo':<15}")
+                print("-"*50)
+                for usuario in usuarios:
+                    print(f"{usuario[0]:<10} {usuario[1]:<15} {usuario[2]:<15} {usuario[3]:<15}")
+                print("-"*50)
+            else:
+                print("❌ No hay usuarios registrados")
+        
         elif opcion == "3":
             try:
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                read_Usuarios_by_id(id_usuario)
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                nombre = input("Nuevo nombre: ").strip()
-                apellido = input("Nuevo apellido: ").strip()
-                if nombre and apellido:
-                    correo = f"{nombre.lower()}.{apellido.lower()}@correo.cl"
-                    print(f"📧 Nuevo correo generado: {correo}")
+                id_usuario = int(input("ID Usuario a buscar: "))
+                usuario = read_Usuarios_by_id(id_usuario)
+                if usuario:
+                    print(f"\nID: {usuario[0]}, Nombre: {usuario[1]}, Apellido: {usuario[2]}, Correo: {usuario[3]}")
                 else:
-                    correo = None
-                update_Usuarios(
-                    id_usuario,
-                    nombre if nombre else None,
-                    apellido if apellido else None,
-                    correo
-                )
+                    print("❌ Usuario no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                delete_Usuario(id_usuario)
+                id_usuario = int(input("ID Usuario a actualizar: "))
+                print("Deja en blanco para no modificar un campo")
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                apellido = input("Nuevo Apellido (opcional): ").strip() or None
+                correo = input("Nuevo Correo (opcional): ").strip() or None
+                update_Usuarios(id_usuario, nombre, apellido, correo)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
-        else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_usuario = int(input("ID Usuario a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Usuario(id_usuario)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
             break
-
-
-import os
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 def menu_Estudiantes():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Estudiantes              |
-            ==========================================
-            | 1. Insertar Estudiante                 |
-            |----------------------------------------|
-            | 2. Leer Estudiante por Id              |
-            |----------------------------------------|
-            | 3. Modificar Estudiante                |
-            |----------------------------------------|
-            | 4. Eliminar Estudiante                 |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE ESTUDIANTES")
+        print("="*50)
+        print("1. Crear Estudiante")
+        print("2. Ver todos los Estudiantes")
+        print("3. Ver Estudiante por ID")
+        print("4. Actualizar Estudiante")
+        print("5. Eliminar Estudiante")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                prestamos_activos = int(input("Ingrese la cantidad de préstamos activos: "))
-                opciones_validas = ["pendiente", "devuelto", "retrasado"]
-                Estado = input("Ingrese el Estado de deuda (pendiente-devuelto-retrasado): ").strip().lower()
-                while Estado not in opciones_validas:
-                    print("❌ Opción no válida. Debe ingresar: pendiente, devuelto o retrasado.")
-                    Estado = input("Ingrese nuevamente el Estado de deuda: ").strip().lower()
-                print("✔️ Estado de deuda registrado correctamente:", Estado)
-                create_Estudiantes(id_estudiante, id_usuario, prestamos_activos, Estado)
+                id_estudiante = int(input("ID Estudiante: "))
+                id_usuario = int(input("ID Usuario: "))
+                prestamos = int(input("Préstamos Activos: "))
+                estado = input("Estado: ")
+                create_Estudiantes(id_estudiante, id_usuario, prestamos, estado)
+                print("✔️ Estudiante creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                read_Estudiantes_by_id(id_estudiante)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            estudiantes = read_Estudiantes()
+            if estudiantes:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'ID Usuario':<12} {'Préstamos':<12} {'Estado':<20}")
+                print("-"*70)
+                for est in estudiantes:
+                    print(f"{est[0]:<10} {est[1]:<12} {est[2]:<12} {est[3]:<20}")
+                print("-"*70)
+            else:
+                print("❌ No hay estudiantes registrados")
+        
         elif opcion == "3":
             try:
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                read_Estudiantes_by_id(id_estudiante)
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                prestamos_activos = input("Nueva cantidad de préstamos activos: ").strip()
-                Estado = input("Nuevo Estado de deuda (pendiente-devuelto-retrasado): ").strip().lower()
-                update_Estudiantes(
-                    id_estudiante,
-                    int(prestamos_activos) if prestamos_activos else None,
-                    Estado if Estado else None
-                )
+                id_estudiante = int(input("ID Estudiante a buscar: "))
+                est = read_Estudiantes_by_id(id_estudiante)
+                if est:
+                    print(f"\nID: {est[0]}, ID Usuario: {est[1]}, Préstamos: {est[2]}, Estado: {est[3]}")
+                else:
+                    print("❌ Estudiante no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                delete_Estudiante(id_estudiante)
+                id_estudiante = int(input("ID Estudiante a actualizar: "))
+                prestamos = input("Nuevos Préstamos (opcional): ").strip()
+                estado = input("Nuevo Estado (opcional): ").strip() or None
+                update_Estudiantes(id_estudiante, int(prestamos) if prestamos else None, estado)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_estudiante = int(input("ID Estudiante a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Estudiante(id_estudiante)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
-
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 def menu_Docentes():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Docentes                 |
-            ==========================================
-            | 1. Insertar Docente                    |
-            |----------------------------------------|
-            | 2. Leer Docente por Id                 |
-            |----------------------------------------|
-            | 3. Modificar Docente                   |
-            |----------------------------------------|
-            | 4. Eliminar Docente                    |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE DOCENTES")
+        print("="*50)
+        print("1. Crear Docente")
+        print("2. Ver todos los Docentes")
+        print("3. Ver Docente por ID")
+        print("4. Actualizar Docente")
+        print("5. Eliminar Docente")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_docente = int(input("Ingrese el id numérico del Docente: "))
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
+                id_docente = int(input("ID Docente: "))
+                id_usuario = int(input("ID Usuario: "))
                 create_Docentes(id_docente, id_usuario)
+                print("✔️ Docente creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_docente = int(input("Ingrese el id numérico del Docente: "))
-                read_Docentes_by_id(id_docente)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            docentes = read_Docentes()
+            if docentes:
+                print("\n" + "-"*40)
+                print(f"{'ID Docente':<15} {'ID Usuario':<15}")
+                print("-"*40)
+                for doc in docentes:
+                    print(f"{doc[0]:<15} {doc[1]:<15}")
+                print("-"*40)
+            else:
+                print("❌ No hay docentes registrados")
+        
         elif opcion == "3":
             try:
-                id_docente = int(input("Ingrese el id numérico del Docente: "))
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                id_usuario = input("Nuevo id de Usuario: ").strip()
-                if id_usuario:
-                    id_usuario = int(id_usuario)
+                id_docente = int(input("ID Docente a buscar: "))
+                doc = read_Docentes_by_id(id_docente)
+                if doc:
+                    print(f"\nID Docente: {doc[0]}, ID Usuario: {doc[1]}")
                 else:
-                    id_usuario = None
-                update_Docentes(id_docente, id_usuario)
+                    print("❌ Docente no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_docente = int(input("Ingrese el id numérico del Docente: "))
-                delete_Docente(id_docente)
+                id_docente = int(input("ID Docente a actualizar: "))
+                id_usuario = input("Nuevo ID Usuario (opcional): ").strip()
+                update_Docentes(id_docente, int(id_usuario) if id_usuario else None)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_docente = int(input("ID Docente a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Docente(id_docente)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
+def menu_Investigadores():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE INVESTIGADORES")
+        print("="*50)
+        print("1. Crear Investigador")
+        print("2. Ver todos los Investigadores")
+        print("3. Ver Investigador por ID")
+        print("4. Actualizar Investigador")
+        print("5. Eliminar Investigador")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_investigador = int(input("ID Investigador: "))
+                id_usuario = int(input("ID Usuario: "))
+                nivel = input("Nivel de Acceso: ")
+                create_Investigadores(id_investigador, id_usuario, nivel)
+                print("✔️ Investigador creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            investigadores = read_Investigadores()
+            if investigadores:
+                print("\n" + "-"*60)
+                print(f"{'ID Inv':<12} {'ID Usuario':<12} {'Nivel Acceso':<20}")
+                print("-"*60)
+                for inv in investigadores:
+                    print(f"{inv[0]:<12} {inv[1]:<12} {inv[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay investigadores registrados")
+        
+        elif opcion == "3":
+            try:
+                id_investigador = int(input("ID Investigador a buscar: "))
+                inv = read_Investigadores_by_id(id_investigador)
+                if inv:
+                    print(f"\nID: {inv[0]}, ID Usuario: {inv[1]}, Nivel: {inv[2]}")
+                else:
+                    print("❌ Investigador no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_investigador = int(input("ID Investigador a actualizar: "))
+                nivel = input("Nuevo Nivel de Acceso (opcional): ").strip() or None
+                update_Investigadores(id_investigador, nivel)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_investigador = int(input("ID Investigador a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Investigador(id_investigador)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Libros():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE LIBROS")
+        print("="*50)
+        print("1. Crear Libro")
+        print("2. Ver todos los Libros")
+        print("3. Ver Libro por ID")
+        print("4. Actualizar Libro")
+        print("5. Eliminar Libro")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_libro = int(input("ID Libro: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                nombre = input("Nombre: ")
+                autor = input("Autor: ")
+                anio = int(input("Año Publicación: "))
+                paginas = int(input("Cantidad Páginas: "))
+                cantidad = int(input("Cantidad: "))
+                descripcion = input("Descripción: ")
+                create_Libros(id_libro, id_estudiante, nombre, autor, anio, paginas, cantidad, descripcion)
+                print("✔️ Libro creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            libros = read_Libros()
+            if libros:
+                print("\n" + "-"*100)
+                print(f"{'ID':<8} {'Nombre':<20} {'Autor':<15} {'Año':<6} {'Páginas':<10} {'Cantidad':<10}")
+                print("-"*100)
+                for libro in libros:
+                    print(f"{libro[0]:<8} {libro[2]:<20} {libro[3]:<15} {libro[4]:<6} {libro[5]:<10} {libro[6]:<10}")
+                print("-"*100)
+            else:
+                print("❌ No hay libros registrados")
+        
+        elif opcion == "3":
+            try:
+                id_libro = int(input("ID Libro a buscar: "))
+                libro = read_Libros_by_id(id_libro)
+                if libro:
+                    print(f"\nID: {libro[0]}, Nombre: {libro[2]}, Autor: {libro[3]}, Año: {libro[4]}")
+                else:
+                    print("❌ Libro no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_libro = int(input("ID Libro a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                autor = input("Nuevo Autor (opcional): ").strip() or None
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                update_Libros(id_libro, nombre, autor, Cantidad=int(cantidad) if cantidad else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_libro = int(input("ID Libro a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Libro(id_libro)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Prestamos():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE PRÉSTAMOS")
+        print("="*50)
+        print("1. Crear Préstamo")
+        print("2. Ver todos los Préstamos")
+        print("3. Ver Préstamo por ID")
+        print("4. Actualizar Préstamo")
+        print("5. Eliminar Préstamo")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_prestamo = int(input("ID Préstamo: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                id_libro = int(input("ID Libro: "))
+                cantidad = int(input("Cantidad: "))
+                fecha_prestamo = input("Fecha Préstamo (YYYY-MM-DD): ")
+                fecha_devolucion = input("Fecha Devolución (YYYY-MM-DD): ")
+                create_Prestamos(id_prestamo, id_estudiante, id_libro, cantidad, fecha_prestamo, fecha_devolucion)
+                print("✔️ Préstamo creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            prestamos = read_Prestamos()
+            if prestamos:
+                print("\n" + "-"*80)
+                print(f"{'ID':<8} {'Estudiante':<12} {'Libro':<10} {'Cantidad':<10} {'Préstamo':<15}")
+                print("-"*80)
+                for prest in prestamos:
+                    print(f"{prest[0]:<8} {prest[1]:<12} {prest[2]:<10} {prest[3]:<10} {prest[4]:<15}")
+                print("-"*80)
+            else:
+                print("❌ No hay préstamos registrados")
+        
+        elif opcion == "3":
+            try:
+                id_prestamo = int(input("ID Préstamo a buscar: "))
+                prest = read_Prestamos_by_id(id_prestamo)
+                if prest:
+                    print(f"\nID: {prest[0]}, Estudiante: {prest[1]}, Libro: {prest[2]}, Cantidad: {prest[3]}")
+                else:
+                    print("❌ Préstamo no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_prestamo = int(input("ID Préstamo a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                fecha_prestamo = input("Nueva fecha de préstamo (YYYY-MM-DD): ").strip()
+                fecha_devolucion = input("Nueva fecha de devolución (YYYY-MM-DD): ").strip()
+
+                update_Prestamos(
+                    id_prestamo,
+                    int(cantidad) if cantidad else None,
+                    fecha_prestamo if fecha_prestamo else None,
+                    fecha_devolucion if fecha_devolucion else None
+                )
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_prestamo = int(input("ID Préstamo a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Prestamo(id_prestamo)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_DataSetsDescargados():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE DATASETS DESCARGADOS")
+        print("="*50)
+        print("1. Crear Dataset")
+        print("2. Ver todos los Datasets")
+        print("3. Ver Dataset por ID")
+        print("4. Actualizar Dataset")
+        print("5. Eliminar Dataset")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_dataset = int(input("ID Dataset: "))
+                id_investigador = int(input("ID Investigador: "))
+                nombre = input("Nombre: ")
+                cantidad = int(input("Cantidad: "))
+                create_DataSetsDescargados(id_dataset, id_investigador, nombre, cantidad)
+                print("✔️ Dataset creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            datasets = read_DataSetsDescargados()
+            if datasets:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'Investigador':<15} {'Nombre':<25} {'Cantidad':<10}")
+                print("-"*70)
+                for ds in datasets:
+                    print(f"{ds[0]:<10} {ds[1]:<15} {ds[2]:<25} {ds[3]:<10}")
+                print("-"*70)
+            else:
+                print("❌ No hay datasets registrados")
+        
+        elif opcion == "3":
+            try:
+                id_dataset = int(input("ID Dataset a buscar: "))
+                ds = read_DataSetsDescargados_by_id(id_dataset)
+                if ds:
+                    print(f"\nID: {ds[0]}, Investigador: {ds[1]}, Nombre: {ds[2]}, Cantidad: {ds[3]}")
+                else:
+                    print("❌ Dataset no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_dataset = int(input("ID Dataset a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                update_DataSetsDescargados(id_dataset, nombre, int(cantidad) if cantidad else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_dataset = int(input("ID Dataset a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Data_Set_Descargado(id_dataset)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_MaterialExclusivo():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE MATERIAL EXCLUSIVO")
+        print("="*50)
+        print("1. Crear Material Exclusivo")
+        print("2. Ver todos los Materiales")
+        print("3. Ver Material por ID")
+        print("4. Actualizar Material")
+        print("5. Eliminar Material")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_material = int(input("ID Material: "))
+                id_docente = int(input("ID Docente: "))
+                nombre = input("Nombre: ")
+                descripcion = input("Descripción: ")
+                create_MaterialExclusivo(id_material, id_docente, nombre, descripcion)
+                print("✔️ Material Exclusivo creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            materiales = read_MaterialExclusivo()
+            if materiales:
+                print("\n" + "-"*80)
+                print(f"{'ID':<10} {'Docente':<10} {'Nombre':<25} {'Descripción':<25}")
+                print("-"*80)
+                for mat in materiales:
+                    print(f"{mat[0]:<10} {mat[1]:<10} {mat[2]:<25} {mat[3]:<25}")
+                print("-"*80)
+            else:
+                print("❌ No hay materiales registrados")
+        
+        elif opcion == "3":
+            try:
+                id_material = int(input("ID Material a buscar: "))
+                mat = read_MaterialExclusivo_by_id(id_material)
+                if mat:
+                    print(f"\nID: {mat[0]}, Docente: {mat[1]}, Nombre: {mat[2]}, Descripción: {mat[3]}")
+                else:
+                    print("❌ Material no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_material = int(input("ID Material a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                descripcion = input("Nueva Descripción (opcional): ").strip() or None
+                update_MaterialExclusivo(id_material, nombre, descripcion)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_material = int(input("ID Material a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Material_Exclusivo(id_material)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Biblioteca():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE BIBLIOTECA")
+        print("="*50)
+        print("1. Crear Biblioteca")
+        print("2. Ver todos")
+        print("3. Ver Biblioteca por ID")
+        print("4. Actualizar Biblioteca")
+        print("5. Eliminar Biblioteca")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_biblioteca = int(input("ID Biblioteca: "))
+                cantidad = int(input("Cantidad Material: "))
+                gestion = int(input("Gestión Préstamo: "))
+                create_Biblioteca(id_biblioteca, cantidad, gestion)
+                print("✔️ Biblioteca creada correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            bibliotecas = read_Biblioteca()
+            if bibliotecas:
+                print("\n" + "-"*60)
+                print(f"{'ID':<10} {'Cantidad Material':<20} {'Gestión Préstamo':<20}")
+                print("-"*60)
+                for bib in bibliotecas:
+                    print(f"{bib[0]:<10} {bib[1]:<20} {bib[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay bibliotecas registradas")
+        
+        elif opcion == "3":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a buscar: "))
+                bib = read_Biblioteca_by_id(id_biblioteca)
+                if bib:
+                    print(f"\nID: {bib[0]}, Cantidad: {bib[1]}, Gestión: {bib[2]}")
+                else:
+                    print("❌ Biblioteca no encontrada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                gestion = input("Nueva Gestión (opcional): ").strip()
+                update_Biblioteca(id_biblioteca, int(cantidad) if cantidad else None, int(gestion) if gestion else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    print("❌ No se pueden eliminar bibliotecas por restricciones")
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 
 import os
 
-def menu_Investigadores():
+def main():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Investigadores           |
-            ==========================================
-            | 1. Insertar Investigador               |
-            |----------------------------------------|
-            | 2. Leer Investigador por Id            |
-            |----------------------------------------|
-            | 3. Modificar Investigador              |
-            |----------------------------------------|
-            | 4. Eliminar Investigador               |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("MENÚ PRINCIPAL - BIBLIOTECA")
+        print("="*50)
+        print("1. Crear/Reiniciar Base de Datos")
+        print("2. Gestionar Usuarios")
+        print("3. Gestionar Estudiantes")
+        print("4. Gestionar Docentes")
+        print("5. Gestionar Investigadores")
+        print("6. Gestionar Libros")
+        print("7. Gestionar Préstamos")
+        print("8. Gestionar Datasets Descargados")
+        print("9. Gestionar Material Exclusivo")
+        print("10. Gestionar Biblioteca")
+        print("0. Salir")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción [1-10, 0 para salir]: ").strip()
+        
+        if opcion == "1":
             try:
-                id_investigador = int(input("Ingrese el id numérico del Investigador: "))
-                id_usuario = int(input("Ingrese el id numérico del Usuario: "))
-                NivelAcceso = input("Ingrese el nivel de acceso del Investigador: ").strip()
-                create_Investigadores(id_investigador, id_usuario, NivelAcceso)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
+                print("⏳ Eliminando tablas antiguas...")
+                drop_all_tables()
+                print("⏳ Creando nuevas tablas...")
+                create_all_tables()
+                print("✔️ Esquema aplicado correctamente en la base de datos.")
+            except Exception as e:
+                print(f"❌ Error al aplicar esquema: {e}")
             input("Presiona ENTER para continuar...")
-
+        
         elif opcion == "2":
-            try:
-                id_investigador = int(input("Ingrese el id numérico del Investigador: "))
-                read_Investigadores_by_id(id_investigador)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
+            menu_Usuarios()
+        elif opcion == "3":
+            menu_Estudiantes()
+        elif opcion == "4":
+            menu_Docentes()
+        elif opcion == "5":
+            menu_Investigadores()
+        elif opcion == "6":
+            menu_Libros()
+        elif opcion == "7":
+            menu_Prestamos()
+        elif opcion == "8":
+            menu_DataSetsDescargados()
+        elif opcion == "9":
+            menu_MaterialExclusivo()
+        elif opcion == "10":
+            menu_Biblioteca()
+        elif opcion == "0":
+            print("👋 ¡Hasta luego!")
+            break
+        else:
+            print("❌ Opción inválida. Intenta de nuevo.")
             input("Presiona ENTER para continuar...")
 
+def menu_Usuarios():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE USUARIOS")
+        print("="*50)
+        print("1. Crear Usuario")
+        print("2. Ver todos los Usuarios")
+        print("3. Ver Usuario por ID")
+        print("4. Actualizar Usuario")
+        print("5. Eliminar Usuario")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_usuario = int(input("ID Usuario: "))
+                nombre = input("Nombre: ")
+                apellido = input("Apellido: ")
+                correo = input("Correo: ")
+                create_Usuarios(id_usuario, nombre, apellido, correo)
+                print("✔️ Usuario creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+            except Exception as e:
+                print(f"❌ Error: {e}")
+        
+        elif opcion == "2":
+            usuarios = read_Usuarios()
+            if usuarios:
+                print("\n" + "-"*50)
+                print(f"{'ID':<10} {'Nombre':<15} {'Apellido':<15} {'Correo':<15}")
+                print("-"*50)
+                for usuario in usuarios:
+                    print(f"{usuario[0]:<10} {usuario[1]:<15} {usuario[2]:<15} {usuario[3]:<15}")
+                print("-"*50)
+            else:
+                print("❌ No hay usuarios registrados")
+        
         elif opcion == "3":
             try:
-                id_investigador = int(input("Ingrese el id numérico del Investigador: "))
-                read_Investigadores_by_id(id_investigador)
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                NivelAcceso = input("Nuevo nivel de acceso: ").strip()
-                update_Investigadores(id_investigador, NivelAcceso if NivelAcceso else None)
+                id_usuario = int(input("ID Usuario a buscar: "))
+                usuario = read_Usuarios_by_id(id_usuario)
+                if usuario:
+                    print(f"\nID: {usuario[0]}, Nombre: {usuario[1]}, Apellido: {usuario[2]}, Correo: {usuario[3]}")
+                else:
+                    print("❌ Usuario no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_investigador = int(input("Ingrese el id numérico del Investigador: "))
-                delete_Investigador(id_investigador)
+                id_usuario = int(input("ID Usuario a actualizar: "))
+                print("Deja en blanco para no modificar un campo")
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                apellido = input("Nuevo Apellido (opcional): ").strip() or None
+                correo = input("Nuevo Correo (opcional): ").strip() or None
+                update_Usuarios(id_usuario, nombre, apellido, correo)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_usuario = int(input("ID Usuario a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Usuario(id_usuario)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
+def menu_Estudiantes():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE ESTUDIANTES")
+        print("="*50)
+        print("1. Crear Estudiante")
+        print("2. Ver todos los Estudiantes")
+        print("3. Ver Estudiante por ID")
+        print("4. Actualizar Estudiante")
+        print("5. Eliminar Estudiante")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_estudiante = int(input("ID Estudiante: "))
+                id_usuario = int(input("ID Usuario: "))
+                prestamos = int(input("Préstamos Activos: "))
+                estado = input("Estado: ")
+                create_Estudiantes(id_estudiante, id_usuario, prestamos, estado)
+                print("✔️ Estudiante creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            estudiantes = read_Estudiantes()
+            if estudiantes:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'ID Usuario':<12} {'Préstamos':<12} {'Estado':<20}")
+                print("-"*70)
+                for est in estudiantes:
+                    print(f"{est[0]:<10} {est[1]:<12} {est[2]:<12} {est[3]:<20}")
+                print("-"*70)
+            else:
+                print("❌ No hay estudiantes registrados")
+        
+        elif opcion == "3":
+            try:
+                id_estudiante = int(input("ID Estudiante a buscar: "))
+                est = read_Estudiantes_by_id(id_estudiante)
+                if est:
+                    print(f"\nID: {est[0]}, ID Usuario: {est[1]}, Préstamos: {est[2]}, Estado: {est[3]}")
+                else:
+                    print("❌ Estudiante no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_estudiante = int(input("ID Estudiante a actualizar: "))
+                prestamos = input("Nuevos Préstamos (opcional): ").strip()
+                estado = input("Nuevo Estado (opcional): ").strip() or None
+                update_Estudiantes(id_estudiante, int(prestamos) if prestamos else None, estado)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_estudiante = int(input("ID Estudiante a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Estudiante(id_estudiante)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Docentes():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE DOCENTES")
+        print("="*50)
+        print("1. Crear Docente")
+        print("2. Ver todos los Docentes")
+        print("3. Ver Docente por ID")
+        print("4. Actualizar Docente")
+        print("5. Eliminar Docente")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_docente = int(input("ID Docente: "))
+                id_usuario = int(input("ID Usuario: "))
+                create_Docentes(id_docente, id_usuario)
+                print("✔️ Docente creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            docentes = read_Docentes()
+            if docentes:
+                print("\n" + "-"*40)
+                print(f"{'ID Docente':<15} {'ID Usuario':<15}")
+                print("-"*40)
+                for doc in docentes:
+                    print(f"{doc[0]:<15} {doc[1]:<15}")
+                print("-"*40)
+            else:
+                print("❌ No hay docentes registrados")
+        
+        elif opcion == "3":
+            try:
+                id_docente = int(input("ID Docente a buscar: "))
+                doc = read_Docentes_by_id(id_docente)
+                if doc:
+                    print(f"\nID Docente: {doc[0]}, ID Usuario: {doc[1]}")
+                else:
+                    print("❌ Docente no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_docente = int(input("ID Docente a actualizar: "))
+                id_usuario = input("Nuevo ID Usuario (opcional): ").strip()
+                update_Docentes(id_docente, int(id_usuario) if id_usuario else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_docente = int(input("ID Docente a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Docente(id_docente)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Investigadores():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE INVESTIGADORES")
+        print("="*50)
+        print("1. Crear Investigador")
+        print("2. Ver todos los Investigadores")
+        print("3. Ver Investigador por ID")
+        print("4. Actualizar Investigador")
+        print("5. Eliminar Investigador")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_investigador = int(input("ID Investigador: "))
+                id_usuario = int(input("ID Usuario: "))
+                nivel = input("Nivel de Acceso: ")
+                create_Investigadores(id_investigador, id_usuario, nivel)
+                print("✔️ Investigador creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            investigadores = read_Investigadores()
+            if investigadores:
+                print("\n" + "-"*60)
+                print(f"{'ID Inv':<12} {'ID Usuario':<12} {'Nivel Acceso':<20}")
+                print("-"*60)
+                for inv in investigadores:
+                    print(f"{inv[0]:<12} {inv[1]:<12} {inv[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay investigadores registrados")
+        
+        elif opcion == "3":
+            try:
+                id_investigador = int(input("ID Investigador a buscar: "))
+                inv = read_Investigadores_by_id(id_investigador)
+                if inv:
+                    print(f"\nID: {inv[0]}, ID Usuario: {inv[1]}, Nivel: {inv[2]}")
+                else:
+                    print("❌ Investigador no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_investigador = int(input("ID Investigador a actualizar: "))
+                nivel = input("Nuevo Nivel de Acceso (opcional): ").strip() or None
+                update_Investigadores(id_investigador, nivel)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_investigador = int(input("ID Investigador a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Investigador(id_investigador)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 def menu_Libros():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Libros                   |
-            ==========================================
-            | 1. Insertar Libro                      |
-            |----------------------------------------|
-            | 2. Leer Libro por Id                   |
-            |----------------------------------------|
-            | 3. Modificar Libro                     |
-            |----------------------------------------|
-            | 4. Eliminar Libro                      |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE LIBROS")
+        print("="*50)
+        print("1. Crear Libro")
+        print("2. Ver todos los Libros")
+        print("3. Ver Libro por ID")
+        print("4. Actualizar Libro")
+        print("5. Eliminar Libro")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_libro = int(input("Ingrese el id numérico del Libro: "))
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                nombre = input("Ingrese el nombre del Libro: ").strip()
-                autor = input("Ingrese el autor del Libro: ").strip()
-                anio_publicacion = int(input("Ingrese el año de publicación del Libro: "))
-                CantidadPaginas = int(input("Ingrese la cantidad de páginas del Libro: "))
-                cantidad = int(input("Ingrese la cantidad del Libro: "))
-                Descripcion = input("Ingrese la descripción del Libro: ").strip()
-                create_Libros(id_libro, id_estudiante, nombre, autor, anio_publicacion, CantidadPaginas, cantidad, Descripcion)
+                id_libro = int(input("ID Libro: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                nombre = input("Nombre: ")
+                autor = input("Autor: ")
+                anio = int(input("Año Publicación: "))
+                paginas = int(input("Cantidad Páginas: "))
+                cantidad = int(input("Cantidad: "))
+                descripcion = input("Descripción: ")
+                create_Libros(id_libro, id_estudiante, nombre, autor, anio, paginas, cantidad, descripcion)
+                print("✔️ Libro creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_libro = int(input("Ingrese el id numérico del Libro: "))
-                read_Libros_by_id(id_libro)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            libros = read_Libros()
+            if libros:
+                print("\n" + "-"*100)
+                print(f"{'ID':<8} {'Nombre':<20} {'Autor':<15} {'Año':<6} {'Páginas':<10} {'Cantidad':<10}")
+                print("-"*100)
+                for libro in libros:
+                    print(f"{libro[0]:<8} {libro[2]:<20} {libro[3]:<15} {libro[4]:<6} {libro[5]:<10} {libro[6]:<10}")
+                print("-"*100)
+            else:
+                print("❌ No hay libros registrados")
+        
         elif opcion == "3":
             try:
-                id_libro = int(input("Ingrese el id numérico del Libro: "))
-                read_Libros_by_id(id_libro)
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                nombre = input("Nuevo nombre: ").strip()
-                autor = input("Nuevo autor: ").strip()
+                id_libro = int(input("ID Libro a buscar: "))
+                libro = read_Libros_by_id(id_libro)
+                if libro:
+                    print(f"\nID: {libro[0]}, Nombre: {libro[2]}, Autor: {libro[3]}, Año: {libro[4]}")
+                else:
+                    print("❌ Libro no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_libro = int(input("ID Libro a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                autor = input("Nuevo Autor (opcional): ").strip() or None
                 anio_publicacion = input("Nuevo año de publicación: ").strip()
                 CantidadPaginas = input("Nueva cantidad de páginas: ").strip()
                 cantidad = input("Nueva cantidad: ").strip()
@@ -1375,17 +2125,23 @@ def menu_Libros():
                 print("⚠️ Ingresaste un valor no numérico.")
             input("Presiona ENTER para continuar...")
 
-        elif opcion == "4":
+        elif opcion == "5":
             try:
-                id_libro = int(input("Ingrese el id numérico del Libro: "))
-                delete_Libro(id_libro)
+                id_libro = int(input("ID Libro a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Libro(id_libro)
+                else:
+                    print("❌ Operación cancelada")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 
 
@@ -1393,56 +2149,59 @@ import os
 
 def menu_Prestamos():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Prestamos                |
-            ==========================================
-            | 1. Insertar Prestamo                   |
-            |----------------------------------------|
-            | 2. Leer Prestamo por Id                |
-            |----------------------------------------|
-            | 3. Modificar Prestamo                  |
-            |----------------------------------------|
-            | 4. Eliminar Prestamo                   |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE PRÉSTAMOS")
+        print("="*50)
+        print("1. Crear Préstamo")
+        print("2. Ver todos los Préstamos")
+        print("3. Ver Préstamo por ID")
+        print("4. Actualizar Préstamo")
+        print("5. Eliminar Préstamo")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_prestamo = int(input("Ingrese el id numérico del Prestamo: "))
-                id_estudiante = int(input("Ingrese el id numérico del Estudiante: "))
-                id_libro = int(input("Ingrese el id numérico del Libro: "))
-                cantidad = int(input("Ingrese la cantidad del Prestamo: "))
-                fecha_prestamo = input("Ingrese la fecha de préstamo (YYYY-MM-DD): ").strip()
-                fecha_devolucion = input("Ingrese la fecha de devolución (YYYY-MM-DD): ").strip()
+                id_prestamo = int(input("ID Préstamo: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                id_libro = int(input("ID Libro: "))
+                cantidad = int(input("Cantidad: "))
+                fecha_prestamo = input("Fecha Préstamo (YYYY-MM-DD): ")
+                fecha_devolucion = input("Fecha Devolución (YYYY-MM-DD): ")
                 create_Prestamos(id_prestamo, id_estudiante, id_libro, cantidad, fecha_prestamo, fecha_devolucion)
+                print("✔️ Préstamo creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_prestamo = int(input("Ingrese el id numérico del Prestamo: "))
-                read_Prestamos_by_id(id_prestamo)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            prestamos = read_Prestamos()
+            if prestamos:
+                print("\n" + "-"*80)
+                print(f"{'ID':<8} {'Estudiante':<12} {'Libro':<10} {'Cantidad':<10} {'Préstamo':<15}")
+                print("-"*80)
+                for prest in prestamos:
+                    print(f"{prest[0]:<8} {prest[1]:<12} {prest[2]:<10} {prest[3]:<10} {prest[4]:<15}")
+                print("-"*80)
+            else:
+                print("❌ No hay préstamos registrados")
+        
         elif opcion == "3":
             try:
-                id_prestamo = int(input("Ingrese el id numérico del Prestamo: "))
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                cantidad = input("Nueva cantidad: ").strip()
+                id_prestamo = int(input("ID Préstamo a buscar: "))
+                prest = read_Prestamos_by_id(id_prestamo)
+                if prest:
+                    print(f"\nID: {prest[0]}, Estudiante: {prest[1]}, Libro: {prest[2]}, Cantidad: {prest[3]}")
+                else:
+                    print("❌ Préstamo no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_prestamo = int(input("ID Préstamo a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
                 fecha_prestamo = input("Nueva fecha de préstamo (YYYY-MM-DD): ").strip()
                 fecha_devolucion = input("Nueva fecha de devolución (YYYY-MM-DD): ").strip()
 
@@ -1453,301 +2212,289 @@ def menu_Prestamos():
                     fecha_devolucion if fecha_devolucion else None
                 )
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
-        elif opcion == "4":
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
             try:
-                id_prestamo = int(input("Ingrese el id numérico del Prestamo: "))
-                delete_Prestamo(id_prestamo)
+                id_prestamo = int(input("ID Préstamo a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Prestamo(id_prestamo)
+                else:
+                    print("❌ Operación cancelada")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
-
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 def menu_DataSetsDescargados():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu DataSetsDescargados      |
-            ==========================================
-            | 1. Insertar DataSetDescargado          |
-            |----------------------------------------|
-            | 2. Leer DataSetDescargado por Id       |
-            |----------------------------------------|
-            | 3. Modificar DataSetDescargado         |
-            |----------------------------------------|
-            | 4. Eliminar DataSetDescargado          |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE DATASETS DESCARGADOS")
+        print("="*50)
+        print("1. Crear Dataset")
+        print("2. Ver todos los Datasets")
+        print("3. Ver Dataset por ID")
+        print("4. Actualizar Dataset")
+        print("5. Eliminar Dataset")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_Data_Set_Descargado = int(input("Ingrese el id numérico del DataSetDescargado: "))
-                id_investigador = int(input("Ingrese el id numérico del Investigador: "))
-                Nombre = input("Ingrese el nombre del DataSetDescargado: ").strip()
-                Cantidad = int(input("Ingrese la cantidad del DataSetDescargado: "))
-                create_DataSetsDescargados(id_Data_Set_Descargado, id_investigador, Nombre, Cantidad)
+                id_dataset = int(input("ID Dataset: "))
+                id_investigador = int(input("ID Investigador: "))
+                nombre = input("Nombre: ")
+                cantidad = int(input("Cantidad: "))
+                create_DataSetsDescargados(id_dataset, id_investigador, nombre, cantidad)
+                print("✔️ Dataset creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_Data_Set_Descargado = int(input("Ingrese el id numérico del DataSetDescargado: "))
-                read_DataSetsDescargados_by_id(id_Data_Set_Descargado)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            datasets = read_DataSetsDescargados()
+            if datasets:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'Investigador':<15} {'Nombre':<25} {'Cantidad':<10}")
+                print("-"*70)
+                for ds in datasets:
+                    print(f"{ds[0]:<10} {ds[1]:<15} {ds[2]:<25} {ds[3]:<10}")
+                print("-"*70)
+            else:
+                print("❌ No hay datasets registrados")
+        
         elif opcion == "3":
             try:
-                id_Data_Set_Descargado = int(input("Ingrese el id numérico del DataSetDescargado: "))
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                Nombre = input("Nuevo nombre: ").strip()
-                Cantidad = input("Nueva cantidad: ").strip()
-
-                update_DataSetsDescargados(
-                    id_Data_Set_Descargado,
-                    Nombre if Nombre else None,
-                    int(Cantidad) if Cantidad else None
-                )
+                id_dataset = int(input("ID Dataset a buscar: "))
+                ds = read_DataSetsDescargados_by_id(id_dataset)
+                if ds:
+                    print(f"\nID: {ds[0]}, Investigador: {ds[1]}, Nombre: {ds[2]}, Cantidad: {ds[3]}")
+                else:
+                    print("❌ Dataset no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_Data_Set_Descargado = int(input("Ingrese el id numérico del DataSetDescargado: "))
-                delete_Data_Set_Descargado(id_Data_Set_Descargado)
+                id_dataset = int(input("ID Dataset a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                update_DataSetsDescargados(id_dataset, nombre, int(cantidad) if cantidad else None)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_dataset = int(input("ID Dataset a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Data_Set_Descargado(id_dataset)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
-
-import os
 
 def menu_MaterialExclusivo():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu MaterialExclusivo        |
-            ==========================================
-            | 1. Insertar MaterialExclusivo          |
-            |----------------------------------------|
-            | 2. Leer MaterialExclusivo por Id       |
-            |----------------------------------------|
-            | 3. Modificar MaterialExclusivo         |
-            |----------------------------------------|
-            | 4. Eliminar MaterialExclusivo          |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE MATERIAL EXCLUSIVO")
+        print("="*50)
+        print("1. Crear Material Exclusivo")
+        print("2. Ver todos los Materiales")
+        print("3. Ver Material por ID")
+        print("4. Actualizar Material")
+        print("5. Eliminar Material")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_material_exclusivo = int(input("Ingrese el id numérico del MaterialExclusivo: "))
-                id_docente = int(input("Ingrese el id numérico del Docente asociado: "))
-                nombre = input("Ingrese el nombre del MaterialExclusivo: ").strip()
-                descripcion = input("Ingrese la descripción del MaterialExclusivo: ").strip()
-                create_MaterialExclusivo(id_material_exclusivo, id_docente, nombre, descripcion)
+                id_material = int(input("ID Material: "))
+                id_docente = int(input("ID Docente: "))
+                nombre = input("Nombre: ")
+                descripcion = input("Descripción: ")
+                create_MaterialExclusivo(id_material, id_docente, nombre, descripcion)
+                print("✔️ Material Exclusivo creado correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_material_exclusivo = int(input("Ingrese el id numérico del MaterialExclusivo: "))
-                read_MaterialExclusivo_by_id(id_material_exclusivo)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            materiales = read_MaterialExclusivo()
+            if materiales:
+                print("\n" + "-"*80)
+                print(f"{'ID':<10} {'Docente':<10} {'Nombre':<25} {'Descripción':<25}")
+                print("-"*80)
+                for mat in materiales:
+                    print(f"{mat[0]:<10} {mat[1]:<10} {mat[2]:<25} {mat[3]:<25}")
+                print("-"*80)
+            else:
+                print("❌ No hay materiales registrados")
+        
         elif opcion == "3":
             try:
-                id_material_exclusivo = int(input("Ingrese el id numérico del MaterialExclusivo: "))
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                nombre = input("Nuevo nombre: ").strip()
-                descripcion = input("Nueva descripción: ").strip()
-                update_MaterialExclusivo(
-                    id_material_exclusivo,
-                    nombre if nombre else None,
-                    descripcion if descripcion else None
-                )
+                id_material = int(input("ID Material a buscar: "))
+                mat = read_MaterialExclusivo_by_id(id_material)
+                if mat:
+                    print(f"\nID: {mat[0]}, Docente: {mat[1]}, Nombre: {mat[2]}, Descripción: {mat[3]}")
+                else:
+                    print("❌ Material no encontrado")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_material_exclusivo = int(input("Ingrese el id numérico del MaterialExclusivo: "))
-                delete_Material_Exclusivo(id_material_exclusivo)
+                id_material = int(input("ID Material a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                descripcion = input("Nueva Descripción (opcional): ").strip() or None
+                update_MaterialExclusivo(id_material, nombre, descripcion)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_material = int(input("ID Material a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Material_Exclusivo(id_material)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 
 def menu_Biblioteca():
     while True:
-        os.system("cls")
-        print("""
-            ==========================================
-            |          Menu Biblioteca               |
-            ==========================================
-            | 1. Insertar Biblioteca                 |
-            |----------------------------------------|
-            | 2. Leer Biblioteca por Id              |
-            |----------------------------------------|
-            | 3. Modificar Biblioteca                |
-            |----------------------------------------|
-            | 4. Eliminar Biblioteca                 |
-            |----------------------------------------|
-            | 0. Volver al Menu Principal            |
-            ==========================================
-        """)
-        opcion = input("Selecciona una opción [1-4, 0 para volver]: ").strip()
-
-        if opcion == "0":
-            os.system("cls")
-            print("Volviendo al menú principal ヾ(•ω•`)o")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        print("\n" + "="*50)
+        print("GESTIÓN DE BIBLIOTECA")
+        print("="*50)
+        print("1. Crear Biblioteca")
+        print("2. Ver todos")
+        print("3. Ver Biblioteca por ID")
+        print("4. Actualizar Biblioteca")
+        print("5. Eliminar Biblioteca")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
             try:
-                id_biblioteca = int(input("Ingrese el id numérico de la Biblioteca: "))
-                CantidadMaterial = int(input("Ingrese la cantidad de material: "))
-                GestionPrestamo = int(input("Ingrese la cantidad de préstamos: "))
-                create_Biblioteca(id_biblioteca, CantidadMaterial, GestionPrestamo)
+                id_biblioteca = int(input("ID Biblioteca: "))
+                cantidad = int(input("Cantidad Material: "))
+                gestion = int(input("Gestión Préstamo: "))
+                create_Biblioteca(id_biblioteca, cantidad, gestion)
+                print("✔️ Biblioteca creada correctamente")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
         elif opcion == "2":
-            try:
-                id_biblioteca = int(input("Ingrese el id numérico de la Biblioteca: "))
-                read_Biblioteca_by_id(id_biblioteca)
-            except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+            bibliotecas = read_Biblioteca()
+            if bibliotecas:
+                print("\n" + "-"*60)
+                print(f"{'ID':<10} {'Cantidad Material':<20} {'Gestión Préstamo':<20}")
+                print("-"*60)
+                for bib in bibliotecas:
+                    print(f"{bib[0]:<10} {bib[1]:<20} {bib[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay bibliotecas registradas")
+        
         elif opcion == "3":
             try:
-                id_biblioteca = int(input("Ingrese el id numérico de la Biblioteca: "))
-                print("⚠️ Si no deseas cambiar un campo, déjalo vacío.")
-                CantidadMaterial = input("Nueva cantidad de material: ").strip()
-                GestionPrestamo = input("Nueva cantidad de préstamos: ").strip()
-
-                update_Biblioteca(
-                    id_biblioteca,
-                    int(CantidadMaterial) if CantidadMaterial else None,
-                    int(GestionPrestamo) if GestionPrestamo else None
-                )
+                id_biblioteca = int(input("ID Biblioteca a buscar: "))
+                bib = read_Biblioteca_by_id(id_biblioteca)
+                if bib:
+                    print(f"\nID: {bib[0]}, Cantidad: {bib[1]}, Gestión: {bib[2]}")
+                else:
+                    print("❌ Biblioteca no encontrada")
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ ID inválido")
+        
         elif opcion == "4":
             try:
-                id_biblioteca = int(input("Ingrese el id numérico de la Biblioteca: "))
-                delete_Biblioteca(id_biblioteca)
+                id_biblioteca = int(input("ID Biblioteca a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                gestion = input("Nueva Gestión (opcional): ").strip()
+                update_Biblioteca(id_biblioteca, int(cantidad) if cantidad else None, int(gestion) if gestion else None)
             except ValueError:
-                print("⚠️ Ingresaste un valor no numérico.")
-            input("Presiona ENTER para continuar...")
-
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    print("❌ No se pueden eliminar bibliotecas por restricciones")
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
-            input("Presiona ENTER para continuar...")
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
 
 
 import os
 
 def main():
     while True:
-        os.system("cls")  # En Linux/Mac usar "clear"
-        print(
-            """
-            ==========================================
-            |          CRUD CON ORACLE SQL           |
-            ==========================================
-            | 1. Aplicar esquema en la base de datos |
-            |----------------------------------------|
-            | 2. Tabla Usuarios                      |
-            |----------------------------------------|
-            | 3. Tabla Estudiantes                   |
-            |----------------------------------------|
-            | 4. Tabla Docentes                      |
-            |----------------------------------------|
-            | 5. Tabla Investigadores                |
-            |----------------------------------------|
-            | 6. Tabla Libros                        |
-            |----------------------------------------|
-            | 7. Tabla Prestamos                     |
-            |----------------------------------------|
-            | 8. Tabla DataSetsDescargados           |
-            |----------------------------------------|
-            | 9. Tabla Biblioteca                    |
-            |----------------------------------------|
-            | 10. Tabla MaterialExclusivo            |
-            |----------------------------------------|
-            | 0. Salir                               |
-            ==========================================
-            """
-        )
+        print("\n" + "="*50)
+        print("MENÚ PRINCIPAL - BIBLIOTECA")
+        print("="*50)
+        print("1. Crear/Reiniciar Base de Datos")
+        print("2. Gestionar Usuarios")
+        print("3. Gestionar Estudiantes")
+        print("4. Gestionar Docentes")
+        print("5. Gestionar Investigadores")
+        print("6. Gestionar Libros")
+        print("7. Gestionar Préstamos")
+        print("8. Gestionar Datasets Descargados")
+        print("9. Gestionar Material Exclusivo")
+        print("10. Gestionar Biblioteca")
+        print("0. Salir")
+        print("="*50)
+        
         opcion = input("Selecciona una opción [1-10, 0 para salir]: ").strip()
-
-        if opcion == "0":
-            print( "Adiós : ")
-            input("Presiona ENTER para continuar...")
-            break
-
-        elif opcion == "1":
+        
+        if opcion == "1":
             try:
-                with get_connection() as conn:
-                    with conn.cursor() as cur:
-                        # Primero eliminamos las tablas
-                        for sql in drop_all_tables():
-                            cur.execute(sql)
-                        # Luego creamos las tablas
-                        for sql in create_all_tables():
-                            cur.execute(sql)
-                    conn.commit()
+                print("⏳ Eliminando tablas antiguas...")
+                drop_all_tables()
+                print("⏳ Creando nuevas tablas...")
+                create_all_tables()
                 print("✔️ Esquema aplicado correctamente en la base de datos.")
             except Exception as e:
                 print(f"❌ Error al aplicar esquema: {e}")
             input("Presiona ENTER para continuar...")
-
+        
         elif opcion == "2":
             menu_Usuarios()
         elif opcion == "3":
@@ -1763,13 +2510,792 @@ def main():
         elif opcion == "8":
             menu_DataSetsDescargados()
         elif opcion == "9":
-            menu_Biblioteca()
-        elif opcion == "10":
             menu_MaterialExclusivo()
+        elif opcion == "10":
+            menu_Biblioteca()
+        elif opcion == "0":
+            print("👋 ¡Hasta luego!")
+            break
         else:
-            print("⚠️ Opción inválida. Intenta nuevamente.")
+            print("❌ Opción inválida. Intenta de nuevo.")
             input("Presiona ENTER para continuar...")
 
+def menu_Usuarios():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE USUARIOS")
+        print("="*50)
+        print("1. Crear Usuario")
+        print("2. Ver todos los Usuarios")
+        print("3. Ver Usuario por ID")
+        print("4. Actualizar Usuario")
+        print("5. Eliminar Usuario")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_usuario = int(input("ID Usuario: "))
+                nombre = input("Nombre: ")
+                apellido = input("Apellido: ")
+                correo = input("Correo: ")
+                create_Usuarios(id_usuario, nombre, apellido, correo)
+                print("✔️ Usuario creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+            except Exception as e:
+                print(f"❌ Error: {e}")
+        
+        elif opcion == "2":
+            usuarios = read_Usuarios()
+            if usuarios:
+                print("\n" + "-"*50)
+                print(f"{'ID':<10} {'Nombre':<15} {'Apellido':<15} {'Correo':<15}")
+                print("-"*50)
+                for usuario in usuarios:
+                    print(f"{usuario[0]:<10} {usuario[1]:<15} {usuario[2]:<15} {usuario[3]:<15}")
+                print("-"*50)
+            else:
+                print("❌ No hay usuarios registrados")
+        
+        elif opcion == "3":
+            try:
+                id_usuario = int(input("ID Usuario a buscar: "))
+                usuario = read_Usuarios_by_id(id_usuario)
+                if usuario:
+                    print(f"\nID: {usuario[0]}, Nombre: {usuario[1]}, Apellido: {usuario[2]}, Correo: {usuario[3]}")
+                else:
+                    print("❌ Usuario no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_usuario = int(input("ID Usuario a actualizar: "))
+                print("Deja en blanco para no modificar un campo")
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                apellido = input("Nuevo Apellido (opcional): ").strip() or None
+                correo = input("Nuevo Correo (opcional): ").strip() or None
+                update_Usuarios(id_usuario, nombre, apellido, correo)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_usuario = int(input("ID Usuario a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Usuario(id_usuario)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Estudiantes():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE ESTUDIANTES")
+        print("="*50)
+        print("1. Crear Estudiante")
+        print("2. Ver todos los Estudiantes")
+        print("3. Ver Estudiante por ID")
+        print("4. Actualizar Estudiante")
+        print("5. Eliminar Estudiante")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_estudiante = int(input("ID Estudiante: "))
+                id_usuario = int(input("ID Usuario: "))
+                prestamos = int(input("Préstamos Activos: "))
+                estado = input("Estado: ")
+                create_Estudiantes(id_estudiante, id_usuario, prestamos, estado)
+                print("✔️ Estudiante creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            estudiantes = read_Estudiantes()
+            if estudiantes:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'ID Usuario':<12} {'Préstamos':<12} {'Estado':<20}")
+                print("-"*70)
+                for est in estudiantes:
+                    print(f"{est[0]:<10} {est[1]:<12} {est[2]:<12} {est[3]:<20}")
+                print("-"*70)
+            else:
+                print("❌ No hay estudiantes registrados")
+        
+        elif opcion == "3":
+            try:
+                id_estudiante = int(input("ID Estudiante a buscar: "))
+                est = read_Estudiantes_by_id(id_estudiante)
+                if est:
+                    print(f"\nID: {est[0]}, ID Usuario: {est[1]}, Préstamos: {est[2]}, Estado: {est[3]}")
+                else:
+                    print("❌ Estudiante no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_estudiante = int(input("ID Estudiante a actualizar: "))
+                prestamos = input("Nuevos Préstamos (opcional): ").strip()
+                estado = input("Nuevo Estado (opcional): ").strip() or None
+                update_Estudiantes(id_estudiante, int(prestamos) if prestamos else None, estado)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_estudiante = int(input("ID Estudiante a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Estudiante(id_estudiante)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Docentes():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE DOCENTES")
+        print("="*50)
+        print("1. Crear Docente")
+        print("2. Ver todos los Docentes")
+        print("3. Ver Docente por ID")
+        print("4. Actualizar Docente")
+        print("5. Eliminar Docente")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_docente = int(input("ID Docente: "))
+                id_usuario = int(input("ID Usuario: "))
+                create_Docentes(id_docente, id_usuario)
+                print("✔️ Docente creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            docentes = read_Docentes()
+            if docentes:
+                print("\n" + "-"*40)
+                print(f"{'ID Docente':<15} {'ID Usuario':<15}")
+                print("-"*40)
+                for doc in docentes:
+                    print(f"{doc[0]:<15} {doc[1]:<15}")
+                print("-"*40)
+            else:
+                print("❌ No hay docentes registrados")
+        
+        elif opcion == "3":
+            try:
+                id_docente = int(input("ID Docente a buscar: "))
+                doc = read_Docentes_by_id(id_docente)
+                if doc:
+                    print(f"\nID Docente: {doc[0]}, ID Usuario: {doc[1]}")
+                else:
+                    print("❌ Docente no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_docente = int(input("ID Docente a actualizar: "))
+                id_usuario = input("Nuevo ID Usuario (opcional): ").strip()
+                update_Docentes(id_docente, int(id_usuario) if id_usuario else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_docente = int(input("ID Docente a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Docente(id_docente)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_Investigadores():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE INVESTIGADORES")
+        print("="*50)
+        print("1. Crear Investigador")
+        print("2. Ver todos los Investigadores")
+        print("3. Ver Investigador por ID")
+        print("4. Actualizar Investigador")
+        print("5. Eliminar Investigador")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_investigador = int(input("ID Investigador: "))
+                id_usuario = int(input("ID Usuario: "))
+                nivel = input("Nivel de Acceso: ")
+                create_Investigadores(id_investigador, id_usuario, nivel)
+                print("✔️ Investigador creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            investigadores = read_Investigadores()
+            if investigadores:
+                print("\n" + "-"*60)
+                print(f"{'ID Inv':<12} {'ID Usuario':<12} {'Nivel Acceso':<20}")
+                print("-"*60)
+                for inv in investigadores:
+                    print(f"{inv[0]:<12} {inv[1]:<12} {inv[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay investigadores registrados")
+        
+        elif opcion == "3":
+            try:
+                id_investigador = int(input("ID Investigador a buscar: "))
+                inv = read_Investigadores_by_id(id_investigador)
+                if inv:
+                    print(f"\nID: {inv[0]}, ID Usuario: {inv[1]}, Nivel: {inv[2]}")
+                else:
+                    print("❌ Investigador no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_investigador = int(input("ID Investigador a actualizar: "))
+                nivel = input("Nuevo Nivel de Acceso (opcional): ").strip() or None
+                update_Investigadores(id_investigador, nivel)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_investigador = int(input("ID Investigador a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Investigador(id_investigador)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+
+def menu_Libros():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE LIBROS")
+        print("="*50)
+        print("1. Crear Libro")
+        print("2. Ver todos los Libros")
+        print("3. Ver Libro por ID")
+        print("4. Actualizar Libro")
+        print("5. Eliminar Libro")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_libro = int(input("ID Libro: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                nombre = input("Nombre: ")
+                autor = input("Autor: ")
+                anio = int(input("Año Publicación: "))
+                paginas = int(input("Cantidad Páginas: "))
+                cantidad = int(input("Cantidad: "))
+                descripcion = input("Descripción: ")
+                create_Libros(id_libro, id_estudiante, nombre, autor, anio, paginas, cantidad, descripcion)
+                print("✔️ Libro creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            libros = read_Libros()
+            if libros:
+                print("\n" + "-"*100)
+                print(f"{'ID':<8} {'Nombre':<20} {'Autor':<15} {'Año':<6} {'Páginas':<10} {'Cantidad':<10}")
+                print("-"*100)
+                for libro in libros:
+                    print(f"{libro[0]:<8} {libro[2]:<20} {libro[3]:<15} {libro[4]:<6} {libro[5]:<10} {libro[6]:<10}")
+                print("-"*100)
+            else:
+                print("❌ No hay libros registrados")
+        
+        elif opcion == "3":
+            try:
+                id_libro = int(input("ID Libro a buscar: "))
+                libro = read_Libros_by_id(id_libro)
+                if libro:
+                    print(f"\nID: {libro[0]}, Nombre: {libro[2]}, Autor: {libro[3]}, Año: {libro[4]}")
+                else:
+                    print("❌ Libro no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_libro = int(input("ID Libro a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                autor = input("Nuevo Autor (opcional): ").strip() or None
+                anio_publicacion = input("Nuevo año de publicación: ").strip()
+                CantidadPaginas = input("Nueva cantidad de páginas: ").strip()
+                cantidad = input("Nueva cantidad: ").strip()
+                Descripcion = input("Nueva descripción: ").strip()
+
+                update_Libros(
+                    id_libro,
+                    nombre if nombre else None,
+                    autor if autor else None,
+                    int(anio_publicacion) if anio_publicacion else None,
+                    int(CantidadPaginas) if CantidadPaginas else None,
+                    int(cantidad) if cantidad else None,
+                    Descripcion if Descripcion else None
+                )
+            except ValueError:
+                print("⚠️ Ingresaste un valor no numérico.")
+            input("Presiona ENTER para continuar...")
+
+        elif opcion == "5":
+            try:
+                id_libro = int(input("ID Libro a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Libro(id_libro)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+
+
+import os
+
+def menu_Prestamos():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE PRÉSTAMOS")
+        print("="*50)
+        print("1. Crear Préstamo")
+        print("2. Ver todos los Préstamos")
+        print("3. Ver Préstamo por ID")
+        print("4. Actualizar Préstamo")
+        print("5. Eliminar Préstamo")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_prestamo = int(input("ID Préstamo: "))
+                id_estudiante = int(input("ID Estudiante: "))
+                id_libro = int(input("ID Libro: "))
+                cantidad = int(input("Cantidad: "))
+                fecha_prestamo = input("Fecha Préstamo (YYYY-MM-DD): ")
+                fecha_devolucion = input("Fecha Devolución (YYYY-MM-DD): ")
+                create_Prestamos(id_prestamo, id_estudiante, id_libro, cantidad, fecha_prestamo, fecha_devolucion)
+                print("✔️ Préstamo creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            prestamos = read_Prestamos()
+            if prestamos:
+                print("\n" + "-"*80)
+                print(f"{'ID':<8} {'Estudiante':<12} {'Libro':<10} {'Cantidad':<10} {'Préstamo':<15}")
+                print("-"*80)
+                for prest in prestamos:
+                    print(f"{prest[0]:<8} {prest[1]:<12} {prest[2]:<10} {prest[3]:<10} {prest[4]:<15}")
+                print("-"*80)
+            else:
+                print("❌ No hay préstamos registrados")
+        
+        elif opcion == "3":
+            try:
+                id_prestamo = int(input("ID Préstamo a buscar: "))
+                prest = read_Prestamos_by_id(id_prestamo)
+                if prest:
+                    print(f"\nID: {prest[0]}, Estudiante: {prest[1]}, Libro: {prest[2]}, Cantidad: {prest[3]}")
+                else:
+                    print("❌ Préstamo no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_prestamo = int(input("ID Préstamo a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                fecha_prestamo = input("Nueva fecha de préstamo (YYYY-MM-DD): ").strip()
+                fecha_devolucion = input("Nueva fecha de devolución (YYYY-MM-DD): ").strip()
+
+                update_Prestamos(
+                    id_prestamo,
+                    int(cantidad) if cantidad else None,
+                    fecha_prestamo if fecha_prestamo else None,
+                    fecha_devolucion if fecha_devolucion else None
+                )
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_prestamo = int(input("ID Préstamo a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Prestamo(id_prestamo)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+def menu_DataSetsDescargados():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE DATASETS DESCARGADOS")
+        print("="*50)
+        print("1. Crear Dataset")
+        print("2. Ver todos los Datasets")
+        print("3. Ver Dataset por ID")
+        print("4. Actualizar Dataset")
+        print("5. Eliminar Dataset")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_dataset = int(input("ID Dataset: "))
+                id_investigador = int(input("ID Investigador: "))
+                nombre = input("Nombre: ")
+                cantidad = int(input("Cantidad: "))
+                create_DataSetsDescargados(id_dataset, id_investigador, nombre, cantidad)
+                print("✔️ Dataset creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            datasets = read_DataSetsDescargados()
+            if datasets:
+                print("\n" + "-"*70)
+                print(f"{'ID':<10} {'Investigador':<15} {'Nombre':<25} {'Cantidad':<10}")
+                print("-"*70)
+                for ds in datasets:
+                    print(f"{ds[0]:<10} {ds[1]:<15} {ds[2]:<25} {ds[3]:<10}")
+                print("-"*70)
+            else:
+                print("❌ No hay datasets registrados")
+        
+        elif opcion == "3":
+            try:
+                id_dataset = int(input("ID Dataset a buscar: "))
+                ds = read_DataSetsDescargados_by_id(id_dataset)
+                if ds:
+                    print(f"\nID: {ds[0]}, Investigador: {ds[1]}, Nombre: {ds[2]}, Cantidad: {ds[3]}")
+                else:
+                    print("❌ Dataset no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_dataset = int(input("ID Dataset a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                update_DataSetsDescargados(id_dataset, nombre, int(cantidad) if cantidad else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_dataset = int(input("ID Dataset a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Data_Set_Descargado(id_dataset)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+
+import os
+
+def menu_MaterialExclusivo():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE MATERIAL EXCLUSIVO")
+        print("="*50)
+        print("1. Crear Material Exclusivo")
+        print("2. Ver todos los Materiales")
+        print("3. Ver Material por ID")
+        print("4. Actualizar Material")
+        print("5. Eliminar Material")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_material = int(input("ID Material: "))
+                id_docente = int(input("ID Docente: "))
+                nombre = input("Nombre: ")
+                descripcion = input("Descripción: ")
+                create_MaterialExclusivo(id_material, id_docente, nombre, descripcion)
+                print("✔️ Material Exclusivo creado correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            materiales = read_MaterialExclusivo()
+            if materiales:
+                print("\n" + "-"*80)
+                print(f"{'ID':<10} {'Docente':<10} {'Nombre':<25} {'Descripción':<25}")
+                print("-"*80)
+                for mat in materiales:
+                    print(f"{mat[0]:<10} {mat[1]:<10} {mat[2]:<25} {mat[3]:<25}")
+                print("-"*80)
+            else:
+                print("❌ No hay materiales registrados")
+        
+        elif opcion == "3":
+            try:
+                id_material = int(input("ID Material a buscar: "))
+                mat = read_MaterialExclusivo_by_id(id_material)
+                if mat:
+                    print(f"\nID: {mat[0]}, Docente: {mat[1]}, Nombre: {mat[2]}, Descripción: {mat[3]}")
+                else:
+                    print("❌ Material no encontrado")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_material = int(input("ID Material a actualizar: "))
+                nombre = input("Nuevo Nombre (opcional): ").strip() or None
+                descripcion = input("Nueva Descripción (opcional): ").strip() or None
+                update_MaterialExclusivo(id_material, nombre, descripcion)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_material = int(input("ID Material a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    delete_Material_Exclusivo(id_material)
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+
+def menu_Biblioteca():
+    while True:
+        print("\n" + "="*50)
+        print("GESTIÓN DE BIBLIOTECA")
+        print("="*50)
+        print("1. Crear Biblioteca")
+        print("2. Ver todos")
+        print("3. Ver Biblioteca por ID")
+        print("4. Actualizar Biblioteca")
+        print("5. Eliminar Biblioteca")
+        print("0. Volver al menú principal")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción: ").strip()
+        
+        if opcion == "1":
+            try:
+                id_biblioteca = int(input("ID Biblioteca: "))
+                cantidad = int(input("Cantidad Material: "))
+                gestion = int(input("Gestión Préstamo: "))
+                create_Biblioteca(id_biblioteca, cantidad, gestion)
+                print("✔️ Biblioteca creada correctamente")
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "2":
+            bibliotecas = read_Biblioteca()
+            if bibliotecas:
+                print("\n" + "-"*60)
+                print(f"{'ID':<10} {'Cantidad Material':<20} {'Gestión Préstamo':<20}")
+                print("-"*60)
+                for bib in bibliotecas:
+                    print(f"{bib[0]:<10} {bib[1]:<20} {bib[2]:<20}")
+                print("-"*60)
+            else:
+                print("❌ No hay bibliotecas registradas")
+        
+        elif opcion == "3":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a buscar: "))
+                bib = read_Biblioteca_by_id(id_biblioteca)
+                if bib:
+                    print(f"\nID: {bib[0]}, Cantidad: {bib[1]}, Gestión: {bib[2]}")
+                else:
+                    print("❌ Biblioteca no encontrada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "4":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a actualizar: "))
+                cantidad = input("Nueva Cantidad (opcional): ").strip()
+                gestion = input("Nueva Gestión (opcional): ").strip()
+                update_Biblioteca(id_biblioteca, int(cantidad) if cantidad else None, int(gestion) if gestion else None)
+            except ValueError:
+                print("❌ Entrada inválida")
+        
+        elif opcion == "5":
+            try:
+                id_biblioteca = int(input("ID Biblioteca a eliminar: "))
+                confirmacion = input("¿Estás seguro? (s/n): ").lower()
+                if confirmacion == "s":
+                    print("❌ No se pueden eliminar bibliotecas por restricciones")
+                else:
+                    print("❌ Operación cancelada")
+            except ValueError:
+                print("❌ ID inválido")
+        
+        elif opcion == "0":
+            break
+        else:
+            print("❌ Opción inválida")
+        
+        input("Presiona ENTER para continuar...")
+
+
+import os
+
+def main():
+    while True:
+        print("\n" + "="*50)
+        print("MENÚ PRINCIPAL - BIBLIOTECA")
+        print("="*50)
+        print("1. Crear/Reiniciar Base de Datos")
+        print("2. Gestionar Usuarios")
+        print("3. Gestionar Estudiantes")
+        print("4. Gestionar Docentes")
+        print("5. Gestionar Investigadores")
+        print("6. Gestionar Libros")
+        print("7. Gestionar Préstamos")
+        print("8. Gestionar Datasets Descargados")
+        print("9. Gestionar Material Exclusivo")
+        print("10. Gestionar Biblioteca")
+        print("0. Salir")
+        print("="*50)
+        
+        opcion = input("Selecciona una opción [1-10, 0 para salir]: ").strip()
+        
+        if opcion == "1":
+            try:
+                print("⏳ Eliminando tablas antiguas...")
+                drop_all_tables()
+                print("⏳ Creando nuevas tablas...")
+                create_all_tables()
+                print("✔️ Esquema aplicado correctamente en la base de datos.")
+            except Exception as e:
+                print(f"❌ Error al aplicar esquema: {e}")
+            input("Presiona ENTER para continuar...")
+        
+        elif opcion == "2":
+            menu_Usuarios()
+        elif opcion == "3":
+            menu_Estudiantes()
+        elif opcion == "4":
+            menu_Docentes()
+        elif opcion == "5":
+            menu_Investigadores()
+        elif opcion == "6":
+            menu_Libros()
+        elif opcion == "7":
+            menu_Prestamos()
+        elif opcion == "8":
+            menu_DataSetsDescargados()
+        elif opcion == "9":
+            menu_MaterialExclusivo()
+        elif opcion == "10":
+            menu_Biblioteca()
+        elif opcion == "0":
+            print("👋 ¡Hasta luego!")
+            break
+        else:
+            print("❌ Opción inválida. Intenta de nuevo.")
+            input("Presiona ENTER para continuar...")
 
 if __name__ == "__main__":
     main()

@@ -4,9 +4,9 @@ from dotenv import load_dotenv
  
 load_dotenv()  
 
-username = os.getenv("user") 
-dsn = os.getenv("host") 
-password = os.getenv("password") 
+username = os.getenv("ORACLE_USER") 
+dsn = os.getenv("ORACLE_DSN") 
+password = os.getenv("ORACLE_PASSWORD") 
 
 
 
