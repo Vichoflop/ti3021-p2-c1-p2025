@@ -1,4 +1,5 @@
 #Dependencias: pip install oracledb python-dotenv bcrypt
+#pip install bcrypt oracledb python-dotenv requests
 import oracledb
 from dotenv import load_dotenv
 import os 
@@ -33,7 +34,7 @@ hashed_password = bcrypt.hashpw(incoming_password, salt)
 
 print(f"Contraseña obtenida: {incoming_password}")
 print(f"Contraseña hasheada: {hashed_password}")
-print(f"Largo del hasheo: {len.hashed_password}")
+print(f"Largo del hasheo: {len(hashed_password)}")
 
 
 def create_schema(query):
