@@ -245,7 +245,7 @@ if __name__ == "__main__":
             user_id, username = logged
             while True:
                 print("\n==========================================")
-                print(f"|         ⚆_⚆ Menú Consultas - {username}|")
+                print(f"|       ⚆_⚆ Menú Consultas - {username}|")
                 print("==========================================")
                 print("| 1. Dólar                               |")
                 print("| 2. Euro                                |")
