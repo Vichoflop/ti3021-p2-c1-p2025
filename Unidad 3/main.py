@@ -157,6 +157,31 @@ def record_query(db: Database, user_id: int, username: str, opcion: str):
         print(f"Error recording query: {e}")
 
 
+def Consulta_users(db: Database, user_id: int = None):
+    """Muestra los registros de consultas.
+    Si se entrega `user_id`, muestra solo las consultas de ese usuario; si no, muestra todas.
+    """
+    try:
+        if user_id is not None:
+            rows = db.query(
+                "SELECT id, user_id, username, fecha_consulta, opcion FROM Consulta_users WHERE user_id = :uid ORDER BY id",
+                {"uid": user_id}
+            )
+        else:
+            rows = db.query("SELECT id, user_id, username, fecha_consulta, opcion FROM Consulta_users ORDER BY id")
+
+        if not rows:
+            print("No hay consultas registradas.")
+            return
+
+        print("\n-- Registro de Consultas --")
+        for r in rows:
+            print(f"ID: {r[0]} | UserID: {r[1]} | Usuario: {r[2]} | Fecha: {r[3]} | Opción: {r[4]}")
+        print("-- Fin del registro --\n")
+    except Exception as e:
+        print(f"Error fetching consultas: {e}")
+
+
 def validate_date_input(date_str: str) -> Optional[datetime.date]:
     try:
         return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -228,6 +253,7 @@ if __name__ == "__main__":
                 print("| 4. IVP                                 |")
                 print("| 5. IPC                                 |")
                 print("| 6. UTM                                 |")
+                print("| 7. Consultas de Usuario                |")
                 print("| 0. Volver                              |")
                 print("==========================================")
                 o = input("Seleccione opción del submenú: ").strip()
@@ -241,6 +267,9 @@ if __name__ == "__main__":
                 }
                 if o == '0':
                     break
+                if o == '7':
+                    Consulta_users(db, user_id)
+                    continue
                 if o not in mapping:
                     print("Opción inválida")
                     continue
