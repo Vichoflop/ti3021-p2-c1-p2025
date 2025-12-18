@@ -16,7 +16,11 @@ class Database:
         self.password = password
 
     def get_connection(self):
-        return oracledb.connect(user=self.username, password=self.password, dsn=self.dsn)
+        try:
+            return oracledb.connect(user=self.username, password=self.password, dsn=self.dsn)
+        except oracledb.DatabaseError as error:
+            print(f"Error connecting to the database: {error}")
+            raise
 
     def create_all_tables(self):
         tables = [
@@ -41,9 +45,8 @@ class Database:
         for table in tables:
             try:
                 self.query(table)
-            except Exception:
-                # si ya existe u otro error, ignorar para no romper
-                pass
+            except Exception as e:
+                print(f"Error creating table: {e}")
 
     def query(self, sql: str, parameters: Optional[dict] = None):
         try:
@@ -51,13 +54,11 @@ class Database:
                 with conn.cursor() as cur:
                     ejecucion = cur.execute(sql, parameters or {})
                     if sql.strip().upper().startswith("SELECT"):
-                        resultado = []
-                        for fila in ejecucion:
-                            resultado.append(fila)
-                        return resultado
+                        return [fila for fila in ejecucion]
                 conn.commit()
         except oracledb.DatabaseError as error:
-            print(error)
+            print(f"Database query error: {error}")
+            return None
 
 
 class Auth:
@@ -75,7 +76,7 @@ class Auth:
         stored = resultado[0][2]
         try:
             hashed_password = bytes.fromhex(stored)
-        except Exception:
+        except ValueError:
             print("Formato de contraseña inválido")
             return None
 
@@ -88,42 +89,38 @@ class Auth:
 
     @staticmethod
     def register(db: Database, username: str, password: str):
-        # generar id siguiente
         res = db.query("SELECT MAX(id) FROM USERS")
         next_id = 1
-        try:
-            if res and res[0] and res[0][0] is not None:
-                next_id = int(res[0][0]) + 1
-        except Exception:
-            next_id = 1
+        if res and res[0] and res[0][0] is not None:
+            next_id = int(res[0][0]) + 1
 
-        # hashear contraseña de forma segura
-        password_bytes = password.encode("utf-8")
-        hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt(12)).hex()
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(12)).hex()
 
         db.query(
             sql="INSERT INTO USERS(id, username, password) VALUES (:id, :username, :password)",
             parameters={"id": next_id, "username": username, "password": hashed}
         )
-        print("usuario registrado con exito")
+        print("Usuario registrado con éxito")
 
 
 class Finance:
     def __init__(self, base_url: str = "https://mindicador.cl/api"):
         self.base_url = base_url
 
-    def get_indicator(self, indicator: str, fecha: str = None) -> float:
+    def get_indicator(self, indicator: str, fecha: str = None) -> Optional[float]:
         try:
             if not fecha:
-                dd = datetime.datetime.now().day
+                dd= datetime.datetime.now().day
                 mm = datetime.datetime.now().month
-                yyyy = datetime.datetime.now().year
-                fecha = f"{dd}-{mm}-{yyyy}"
+                yyyy= datetime.datetime.now().year
+                fecha = f"{dd:02d}-{mm:02d}-{yyyy}"
             url = f"{self.base_url}/{indicator}/{fecha}"
+            print(url)
             respuesta = requests.get(url).json()
+            print(respuesta)
             return respuesta["serie"][0]["valor"]
-        except Exception:
-            print("Hubo un error con la solicitud")
+        except Exception as e:
+            print(f"Error fetching indicator: {e}")
             return None
 
     def get_usd(self, fecha: str = None):
@@ -146,36 +143,55 @@ class Finance:
 
 
 def record_query(db: Database, user_id: int, username: str, opcion: str):
-    # insertar registro de consulta en Consulta_users
     try:
         res = db.query("SELECT MAX(id) FROM Consulta_users")
         next_id = 1
-        try:
-            if res and res[0] and res[0][0] is not None:
-                next_id = int(res[0][0]) + 1
-        except Exception:
-            next_id = 1
+        if res and res[0] and res[0][0] is not None:
+            next_id = int(res[0][0]) + 1
 
         db.query(
             "INSERT INTO Consulta_users(id, user_id, username, fecha_consulta, opcion) VALUES(:id, :user_id, :username, :fecha_consulta, :opcion)",
             {"id": next_id, "user_id": user_id, "username": username, "fecha_consulta": datetime.datetime.now().isoformat(), "opcion": opcion}
         )
     except Exception as e:
-        print(e)
+        print(f"Error recording query: {e}")
+
+
+def validate_date_input(date_str: str) -> Optional[datetime.date]:
+    try:
+        return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        print("Fecha inválida. Use el formato YYYY-MM-DD.")
+        return None
 
 
 if __name__ == "__main__":
+    # Load database credentials
+    load_dotenv()  # Ensure this is called to load environment variables
+    oracle_user = os.getenv("ORACLE_USER")
+    oracle_dsn = os.getenv("ORACLE_DSN")
+    oracle_password = os.getenv("ORACLE_PASSWORD")
+
+    # Debugging: Print loaded credentials
+    print("ORACLE_USER:", oracle_user)
+    print("ORACLE_DSN:", oracle_dsn)
+    print("ORACLE_PASSWORD:", oracle_password)
+
+    # Validate credentials
+    if not all([oracle_user, oracle_dsn, oracle_password]):
+        print("Error: Missing database credentials. Please check your .env file.")
+        exit(1)
+
     db = Database(
-        username=os.getenv("ORACLE_USER"),
-        dsn=os.getenv("ORACLE_DSN"),
-        password=os.getenv("ORACLE_PASSWORD")
+        username=oracle_user,
+        dsn=oracle_dsn,
+        password=oracle_password
     )
 
-    # crear tablas si no existen
     try:
         db.create_all_tables()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error initializing database: {e}")
 
     finance = Finance()
 
@@ -194,7 +210,6 @@ if __name__ == "__main__":
                 print("El nombre no debe estar vacío")
                 continue
             contrasena = input("Contraseña: ")
-            # registrar con contraseña segura (hash)
             Auth.register(db, usuario, contrasena)
         elif opt == '2':
             usuario = input("Usuario: ").strip()
@@ -203,7 +218,6 @@ if __name__ == "__main__":
             if not logged:
                 continue
             user_id, username = logged
-            # sub menú
             while True:
                 print("\n==========================================")
                 print(f"|         ⚆_⚆ Menú Consultas - {username}|")
@@ -232,38 +246,23 @@ if __name__ == "__main__":
                     continue
                 key, func, display = mapping[o]
                 tipo = input('¿Consulta por rango? (s/n): ').strip().lower()
-                if tipo == 's' or tipo == 'si' or tipo == 'sí':
+                if tipo in ['s', 'si', 'sí']:
                     start = input('Fecha inicio (YYYY-MM-DD): ').strip()
                     end = input('Fecha fin (YYYY-MM-DD): ').strip()
-                    # iterar por rango (simple, no validaciones extensas)
-                    try:
-                        sdate = datetime.datetime.strptime(start, '%Y-%m-%d').date()
-                        edate = datetime.datetime.strptime(end, '%Y-%m-%d').date()
-                    except Exception:
-                        print('Fechas inválidas')
+                    sdate = validate_date_input(start)
+                    edate = validate_date_input(end)
+                    if not sdate or not edate:
                         continue
                     cur = sdate
                     while cur <= edate:
                         fecha_i = cur.strftime('%Y-%m-%d')
-                        valor = None
-                        try:
-                            valor = finance.get_indicator(key, fecha_i)
-                        except Exception:
-                            valor = None
-                        # mostrar resultado según requerimiento
-                        print(f'El valor de "{display}" "{start} a {end}" es de "{valor}"')
-                        # registrar consulta
+                        valor = finance.get_indicator(key, fecha_i)
+                        print(f'El valor de "{display}" "{fecha_i}" es de "{valor}"')
                         record_query(db, user_id, username, display)
-                        cur = cur + datetime.timedelta(days=1)
+                        cur += datetime.timedelta(days=1)
                 else:
                     fecha = input('Fecha (YYYY-MM-DD) o enter para hoy: ').strip()
-                    if not fecha:
-                        fecha = datetime.datetime.now().strftime('%d-%m-%Y')
-                    valor = None
-                    try:
-                        valor = finance.get_indicator(key, fecha)
-                    except Exception:
-                        valor = None
+                    valor = finance.get_indicator(key, fecha)
                     print(f'El valor de "{display}" "{fecha}" es de "{valor}"')
                     record_query(db, user_id, username, display)
         elif opt == '0':
@@ -271,4 +270,4 @@ if __name__ == "__main__":
         else:
             print("Opción inválida")
 
-            
+
